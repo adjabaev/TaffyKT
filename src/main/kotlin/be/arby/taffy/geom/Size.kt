@@ -5,6 +5,7 @@ import be.arby.taffy.style.flex.FlexDirection
 import be.arby.taffy.lang.f32Max
 import be.arby.taffy.lang.f32Min
 import be.arby.taffy.style.dimension.Dimension
+import be.arby.taffy.style.dimension.LengthPercentage
 
 /**
  * The width and height of a [`Rect`]
@@ -202,6 +203,34 @@ data class Size<T>(
             return Size(width = Option.Some(width), height = Option.Some(height))
         }
 
+        fun autoD(): Size<Dimension> {
+            return Size(
+                width = Dimension.Auto,
+                height = Dimension.Auto
+            )
+        }
+
+        fun zeroF(): Size<Float> {
+            return Size(
+                width = 0f,
+                height = 0f
+            )
+        }
+
+        fun zeroOF(): Size<Option<Float>> {
+            return Size(
+                width = Option.Some(0f),
+                height = Option.Some(0f)
+            )
+        }
+
+        fun zeroLP(): Size<LengthPercentage> {
+            return Size(
+                width = LengthPercentage.Length(0f),
+                height = LengthPercentage.Length(0f)
+            )
+        }
+
         /**
          * Creates a new [`Size<Option<f32>>`] with either the width or height set based on the provided `direction`
          */
@@ -218,92 +247,110 @@ data class Size<T>(
         /**
          * Generates a [`Size<Dimension>`] using [`Dimension::Length`] values
          */
-        fun Size<Dimension>.fromLengths(width: Float, height: Float): Size<Dimension> {
+        fun fromLengths(width: Float, height: Float): Size<Dimension> {
             return Size(width = Dimension.Length(width), height = Dimension.Length(height))
         }
 
         /**
          * Generates a [`Size<Dimension>`] using [`Dimension::Percent`] values
          */
-        fun Size<Dimension>.fromPercent(width: Float, height: Float): Size<Dimension> {
+        fun fromPercent(width: Float, height: Float): Size<Dimension> {
             return Size(width = Dimension.Percent(width), height = Dimension.Percent(height))
         }
     }
+}
 
-    /// FLOAT VARIANTS
+/// DIMENSION VARIANTS
 
-    operator fun Size<Float>.plus(rhs: Size<Float>): Size<Float> {
-        return Size(width + rhs.width, height + rhs.height)
-    }
+fun Size<Dimension>.maybeResolve(context: Size<Option<Float>>): Size<Option<Float>> {
+    return Size(width = width.maybeResolve(context.width), height = height.maybeResolve(context.height))
+}
 
-    operator fun Size<Float>.minus(rhs: Size<Float>): Size<Float> {
-        return Size(width - rhs.width, height - rhs.height)
-    }
+/// FLOAT VARIANTS
 
-    /**
-     * Applies f32Max to each component separately
-     */
-    fun Size<Float>.f32Max(rhs: Size<Float>): Size<Float> {
-        return Size(width = f32Max(width, rhs.width), height = f32Max(height, rhs.height))
-    }
+operator fun Size<Float>.plus(rhs: Size<Float>): Size<Float> {
+    return Size(width + rhs.width, height + rhs.height)
+}
 
-    /**
-     * Applies f32Min to each component separately
-     */
-    fun Size<Float>.f32Min(rhs: Size<Float>): Size<Float> {
-        return Size(width = f32Min(width, rhs.width), height = f32Min(height, rhs.height))
-    }
+operator fun Size<Float>.minus(rhs: Size<Float>): Size<Float> {
+    return Size(width - rhs.width, height - rhs.height)
+}
 
-    /**
-     * Return true if both width and height are greater than 0 else false
-     */
-    fun Size<Float>.hasNonZeroArea(): Boolean {
-        return width > 0.0 && height > 0.0
-    }
+/**
+ * Applies f32Max to each component separately
+ */
+fun Size<Float>.f32Max(rhs: Size<Float>): Size<Float> {
+    return Size(width = f32Max(width, rhs.width), height = f32Max(height, rhs.height))
+}
 
-    /// OPTION FLOAT VARIANTS
+/**
+ * Applies f32Min to each component separately
+ */
+fun Size<Float>.f32Min(rhs: Size<Float>): Size<Float> {
+    return Size(width = f32Min(width, rhs.width), height = f32Min(height, rhs.height))
+}
 
-    /**
-     * Applies aspect_ratio (if one is supplied) to the Size:
-     *   - If width is `Some` but height is `None`, then height is computed from width and aspect_ratio
-     *   - If height is `Some` but width is `None`, then width is computed from height and aspect_ratio
-     *
-     * If aspect_ratio is `None` then this function simply returns self.
-     */
-    fun Size<Option<Float>>.maybeApplyAspectRatio(aspectRatio: Option<Float>): Size<Option<Float>> {
-        return when (aspectRatio) {
-            is Option.Some -> when (width) {
-                is Option.Some -> when (height) {
-                    is Option.Some -> this
-                    is Option.None -> Size(width = Option.Some(width.unwrap()), height = Option.Some(width.unwrap() / aspectRatio.value))
-                }
-                is Option.None -> when (height) {
-                    is Option.Some -> Size(width = Option.Some(height.unwrap() * aspectRatio.value), height = Option.Some(height.unwrap()))
-                    is Option.None -> this
-                }
+/**
+ * Return true if both width and height are greater than 0 else false
+ */
+fun Size<Float>.hasNonZeroArea(): Boolean {
+    return width > 0.0 && height > 0.0
+}
+
+/// OPTION FLOAT VARIANTS
+
+/**
+ * Applies aspect_ratio (if one is supplied) to the Size:
+ *   - If width is `Some` but height is `None`, then height is computed from width and aspect_ratio
+ *   - If height is `Some` but width is `None`, then width is computed from height and aspect_ratio
+ *
+ * If aspect_ratio is `None` then this function simply returns self.
+ */
+fun Size<Option<Float>>.maybeApplyAspectRatio(aspectRatio: Option<Float>): Size<Option<Float>> {
+    return when (aspectRatio) {
+        is Option.Some -> when (width) {
+            is Option.Some -> when (height) {
+                is Option.Some -> this
+                is Option.None -> Size(width = Option.Some(width.unwrap()), height = Option.Some(width.unwrap() / aspectRatio.value))
             }
-            is Option.None -> this
+            is Option.None -> when (height) {
+                is Option.Some -> Size(width = Option.Some(height.unwrap() * aspectRatio.value), height = Option.Some(height.unwrap()))
+                is Option.None -> this
+            }
         }
+        is Option.None -> this
     }
+}
 
-    /**
-     * Performs Option::unwrap_or on each component separately
-     */
-    fun <T> Size<Option<T>>.unwrapOr(alt: Size<T>): Size<T> {
-        return Size(width = width.unwrapOr(alt.width), height = height.unwrapOr(alt.height))
-    }
+/**
+ * Performs Option::unwrap_or on each component separately
+ */
+fun <T> Size<Option<T>>.unwrapOr(alt: Size<T>): Size<T> {
+    return Size(width = width.unwrapOr(alt.width), height = height.unwrapOr(alt.height))
+}
 
-    /**
-     * Performs Option::or on each component separately
-     */
-    fun <T> Size<Option<T>>.or(alt: Size<Option<T>>): Size<Option<T>> {
-        return Size(width = width.or(alt.width), height = height.or(alt.height))
-    }
+/**
+ * Performs Option::or on each component separately
+ */
+fun <T> Size<Option<T>>.or(alt: Size<Option<T>>): Size<Option<T>> {
+    return Size(width = width.or(alt.width), height = height.or(alt.height))
+}
 
-    /**
-     * Return true if both components are Some, else false.
-     */
-    fun Size<Option<T>>.bothAxisDefined(): Boolean {
-        return width.isSome() && height.isSome()
-    }
+/**
+ * Return true if both components are Some, else false.
+ */
+fun <T> Size<Option<T>>.bothAxisDefined(): Boolean {
+    return width.isSome() && height.isSome()
+}
+
+/// LENGTH_PERCENTAGE VARIANTS
+
+/**
+ * Converts any `parent`-relative values for Rect into an absolute Rect
+ */
+fun Size<LengthPercentage>.resolveOrZero(context: Size<Option<Float>>): Size<Float> {
+    return Size (
+        width = width.resolveOrZero(context.width),
+        height = height.resolveOrZero(context.height)
+    )
 }

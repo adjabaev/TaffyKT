@@ -2,14 +2,14 @@ package be.arby.taffy.style.grid
 
 import be.arby.taffy.lang.Option
 import be.arby.taffy.style.dimension.LengthPercentage
-import be.arby.taffy.utils.Into
+import be.arby.taffy.lang.Into
 
 sealed class MaxTrackSizingFunction {
     data class Fixed(val l: LengthPercentage) : MaxTrackSizingFunction()
-    object MinContent : MaxTrackSizingFunction()
-    object MaxContent : MaxTrackSizingFunction()
+    data object MinContent : MaxTrackSizingFunction()
+    data object MaxContent : MaxTrackSizingFunction()
     data class FitContent(val l: LengthPercentage) : MaxTrackSizingFunction()
-    object Auto : MaxTrackSizingFunction()
+    data object Auto : MaxTrackSizingFunction()
     data class Flex(val f: Float) : MaxTrackSizingFunction()
 
     /**

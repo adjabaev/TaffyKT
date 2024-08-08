@@ -1,7 +1,7 @@
 package be.arby.taffy.style.grid
 
+import be.arby.taffy.geom.AbsoluteAxis
 import be.arby.taffy.lang.Default
-import be.arby.taffy.maths.axis.AbsoluteAxis
 
 /**
  * Controls whether grid items are placed row-wise or column-wise. And whether the sparse or dense packing algorithm is used.

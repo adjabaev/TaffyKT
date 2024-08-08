@@ -2,13 +2,13 @@ package be.arby.taffy.style.grid
 
 import be.arby.taffy.lang.Option
 import be.arby.taffy.style.dimension.LengthPercentage
-import be.arby.taffy.utils.Into
+import be.arby.taffy.lang.Into
 
 sealed class MinTrackSizingFunction {
     data class Fixed(val l: LengthPercentage) : MinTrackSizingFunction()
-    object MinContent : MinTrackSizingFunction()
-    object MaxContent : MinTrackSizingFunction()
-    object Auto : MinTrackSizingFunction()
+    data object MinContent : MinTrackSizingFunction()
+    data object MaxContent : MinTrackSizingFunction()
+    data object Auto : MinTrackSizingFunction()
 
     /**
      * Returns true if the min track sizing function is `MinContent`, `MaxContent` or `Auto`, else false.

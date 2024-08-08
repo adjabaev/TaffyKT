@@ -1,7 +1,7 @@
 package be.arby.taffy.style.grid
 
 import be.arby.taffy.style.dimension.LengthPercentage
-import be.arby.taffy.utils.Into
+import be.arby.taffy.lang.Into
 
 sealed class TrackSizingFunction {
     data class Single(var f: NonRepeatedTrackSizingFunction) : TrackSizingFunction()

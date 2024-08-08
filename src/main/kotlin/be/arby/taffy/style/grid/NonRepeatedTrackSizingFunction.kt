@@ -2,7 +2,7 @@ package be.arby.taffy.style.grid
 
 import be.arby.taffy.geom.MinMax
 import be.arby.taffy.style.dimension.LengthPercentage
-import be.arby.taffy.utils.Into
+import be.arby.taffy.lang.Into
 
 class NonRepeatedTrackSizingFunction(min: MinTrackSizingFunction, max: MaxTrackSizingFunction) :
     MinMax<MinTrackSizingFunction, MaxTrackSizingFunction>(min, max) {

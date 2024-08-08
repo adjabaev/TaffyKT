@@ -1,7 +1,7 @@
 package be.arby.taffy.tree.layout
 
-import be.arby.taffy.geometry.Point
-import be.arby.taffy.geometry.Size
+import be.arby.taffy.geom.Point
+import be.arby.taffy.geom.Size
 import be.arby.taffy.lang.Option
 
 
@@ -89,7 +89,7 @@ data class LayoutOutput(
          * Construct a SizeBaselinesAndMargins from just the container's size.
          */
         fun fromOuterSize(size: Size<Float>): LayoutOutput {
-            return fromSizes(size, Size.zeroF())
+            return fromSizes(size, Size.ZERO)
         }
     }
 }

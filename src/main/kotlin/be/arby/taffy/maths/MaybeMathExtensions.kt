@@ -2,8 +2,8 @@ package be.arby.taffy.maths
 
 import be.arby.taffy.lang.Option
 import be.arby.taffy.style.dimension.AvailableSpace
-import be.arby.taffy.utils.max
-import be.arby.taffy.utils.min
+import be.arby.taffy.util.max
+import be.arby.taffy.util.min
 
 fun Float.min(other: Float): Float {
     return min(this, other)

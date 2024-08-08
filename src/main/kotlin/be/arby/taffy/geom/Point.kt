@@ -83,7 +83,7 @@ data class Point<T>(
         }
     }
 
-    companion object: From {
+    companion object {
         /**
          * A [`Point`] with values (0, 0), representing the origin
          */
@@ -93,9 +93,13 @@ data class Point<T>(
          */
         val NONE: Point<Option<Float>> = Point(x = Option.None, y = Option.None)
     }
+}
 
-    /// FLOAT VARIANTS
-    operator fun Point<Float>.plus(rhs: Point<Float>): Point<Float> {
-        return Point(x = x + rhs.x, y = y + rhs.y)
-    }
+/// FLOAT VARIANTS
+operator fun Point<Float>.plus(rhs: Point<Float>): Point<Float> {
+    return Point(x = x + rhs.x, y = y + rhs.y)
+}
+
+fun Point<Option<Float>>.into(): Size<Option<Float>> {
+    return Size(width = x, height = y)
 }

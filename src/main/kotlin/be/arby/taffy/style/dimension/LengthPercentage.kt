@@ -1,8 +1,6 @@
 package be.arby.taffy.style.dimension
 
 import be.arby.taffy.lang.Option
-import be.arby.taffy.resolve.MaybeResolve
-import be.arby.taffy.resolve.ResolveOrZero
 
 sealed class LengthPercentage {
     /**
@@ -15,6 +13,20 @@ sealed class LengthPercentage {
      * The dimension is stored in percentage relative to the parent item.
      */
     data class Percent(val f: Float = 0f) : LengthPercentage()
+
+    fun maybeResolve(context: Option<Float>): Option<Float> {
+        return when (this) {
+            is Length -> Option.Some(this.f)
+            is Percent -> context.map { dim -> dim * this.f }
+        }
+    }
+
+    /**
+     * Will return a default value of result is evaluated to `None`
+     */
+    fun resolveOrZero(context: Option<Float>): Float {
+        return maybeResolve(context).unwrapOr(0f)
+    }
 
     companion object {
         val ZERO: LengthPercentage = Length(0f)

@@ -1,15 +1,16 @@
 package be.arby.taffy.tree.cache
 
-import be.arby.taffy.geometry.Size
+import be.arby.taffy.geom.Size
 import be.arby.taffy.lang.Default
 import be.arby.taffy.lang.Option
 import be.arby.taffy.tree.layout.RunMode
 import be.arby.taffy.style.dimension.AvailableSpace
-import be.arby.taffy.utils.toInt
+import be.arby.taffy.tree.layout.LayoutOutput
+import be.arby.taffy.util.toInt
 
 data class Cache(
-    var finalLayoutEntry: Option<be.arby.taffy.tree.cache.CacheEntry<LayoutOutput>>,
-    var measureEntries: Array<Option<be.arby.taffy.tree.cache.CacheEntry<Size<Float>>>>
+    var finalLayoutEntry: Option<CacheEntry<LayoutOutput>>,
+    var measureEntries: Array<Option<CacheEntry<Size<Float>>>>
 ) {
     /**
      * Return the cache slot to cache the current computed result in
@@ -121,7 +122,7 @@ data class Cache(
         when (runMode) {
             RunMode.PERFORM_LAYOUT -> {
                 finalLayoutEntry = Option.Some(
-                    be.arby.taffy.tree.cache.CacheEntry(
+                    CacheEntry(
                         knownDimensions,
                         availableSpace,
                         layoutOutput
@@ -131,7 +132,7 @@ data class Cache(
             RunMode.COMPUTE_SIZE -> {
                 val cacheSlot = computeCacheSlot(knownDimensions, availableSpace)
                 measureEntries[cacheSlot] = Option.Some(
-                    be.arby.taffy.tree.cache.CacheEntry(
+                    CacheEntry(
                         knownDimensions,
                         availableSpace,
                         layoutOutput.size
@@ -147,7 +148,7 @@ data class Cache(
      */
     fun clear() {
         finalLayoutEntry = Option.None
-        measureEntries = Array(be.arby.taffy.tree.cache.Cache.Companion.CACHE_SIZE) { Option.None }
+        measureEntries = Array(CACHE_SIZE) { Option.None }
     }
 
     /**
@@ -157,15 +158,15 @@ data class Cache(
         return finalLayoutEntry.isNone() && !measureEntries.any { entry -> entry.isSome() }
     }
 
-    companion object: Default<be.arby.taffy.tree.cache.Cache> {
+    companion object: Default<Cache> {
         const val CACHE_SIZE = 9
 
-        override fun default(): be.arby.taffy.tree.cache.Cache = be.arby.taffy.tree.cache.Cache.Companion.new()
+        override fun default(): Cache = Cache.Companion.new()
 
-        fun new(): be.arby.taffy.tree.cache.Cache {
-            return be.arby.taffy.tree.cache.Cache(
+        fun new(): Cache {
+            return Cache(
                 finalLayoutEntry = Option.None,
-                measureEntries = Array(be.arby.taffy.tree.cache.Cache.Companion.CACHE_SIZE) { Option.None }
+                measureEntries = Array(CACHE_SIZE) { Option.None }
             )
         }
     }

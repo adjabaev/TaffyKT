@@ -1,8 +1,8 @@
 package be.arby.taffy.style
 
-import be.arby.taffy.geometry.Point
-import be.arby.taffy.geometry.Rect
-import be.arby.taffy.geometry.Size
+import be.arby.taffy.geom.Point
+import be.arby.taffy.geom.Rect
+import be.arby.taffy.geom.Size
 import be.arby.taffy.lang.Option
 import be.arby.taffy.style.dimension.Dimension
 import be.arby.taffy.style.dimension.LengthPercentage

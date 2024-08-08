@@ -1,9 +1,7 @@
 package be.arby.taffy.tree.layout
 
+import be.arby.taffy.geom.AbsoluteAxis
 import be.arby.taffy.lang.From
-import be.arby.taffy.lang.Result
-import be.arby.taffy.lang.TryFrom
-import be.arby.taffy.maths.axis.AbsoluteAxis
 
 /**
  * An axis that layout algorithms can be requested to compute a size for

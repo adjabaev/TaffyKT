@@ -1,6 +1,8 @@
 package be.arby.taffy.geom
 
-import be.arby.taffy.geometry.Size
+import be.arby.taffy.lang.Option
+import be.arby.taffy.style.dimension.LengthPercentage
+import be.arby.taffy.style.dimension.LengthPercentageAuto
 import be.arby.taffy.style.flex.FlexDirection
 
 /**
@@ -128,77 +130,144 @@ data class Rect<T>(
         fun new(start: Float, end: Float, top: Float, bottom: Float): Rect<Float> {
             return Rect(left = start, right = end, top = top, bottom = bottom)
         }
-    }
 
-    /// FLOAT VARIANTS
+        fun autoLPA(): Rect<LengthPercentageAuto> {
+            return Rect(
+                left = LengthPercentageAuto.Auto,
+                right = LengthPercentageAuto.Auto,
+                top = LengthPercentageAuto.Auto,
+                bottom = LengthPercentageAuto.Auto
+            )
+        }
 
-    operator fun Rect<Float>.plus(rhs: Rect<Float>): Rect<Float> {
-        return Rect(
-            left = left + rhs.left,
-            right = right + rhs.right,
-            top = top + rhs.top,
-            bottom = bottom + rhs.bottom
-        )
-    }
+        fun zeroLPA(): Rect<LengthPercentageAuto> {
+            return Rect(
+                left = LengthPercentageAuto.Length(0f),
+                right = LengthPercentageAuto.Length(0f),
+                top = LengthPercentageAuto.Length(0f),
+                bottom = LengthPercentageAuto.Length(0f)
+            )
+        }
 
-    /**
-     * The sum of [`Rect.start`](Rect) and [`Rect.end`](Rect)
-     *
-     * This is typically used when computing total padding.
-     *
-     * **NOTE:** this is *not* the width of the rectangle.
-     */
-    fun Rect<Float>.horizontalAxisSum(): Float {
-        return left + right
-    }
-
-    /**
-     * The sum of [`Rect.top`](Rect) and [`Rect.bottom`](Rect)
-     *
-     * This is typically used when computing total padding.
-     *
-     * **NOTE:** this is *not* the height of the rectangle.
-     */
-    fun Rect<Float>.verticalAxisSum(): Float {
-        return top + bottom
-    }
-
-    /**
-     * Both horizontal_axis_sum and vertical_axis_sum as a Size<T>
-     *
-     * **NOTE:** this is *not* the width/height of the rectangle.
-     */
-    fun Rect<Float>.sumAxes(): Size<Float> {
-        return Size(width = horizontalAxisSum(), height = verticalAxisSum())
-    }
-
-    /**
-     * The sum of the two fields of the [`Rect`] representing the main axis.
-     *
-     * This is typically used when computing total padding.
-     *
-     * If the [`FlexDirection`] is [`FlexDirection::Row`] or [`FlexDirection::RowReverse`], this is [`Rect::horizontal`].
-     * Otherwise, this is [`Rect::vertical`].
-     */
-    fun Rect<Float>.mainAxisSum(direction: FlexDirection): Float {
-        return if (direction.isRow()) {
-            horizontalAxisSum()
-        } else {
-            verticalAxisSum()
+        fun zeroLP(): Rect<LengthPercentage> {
+            return Rect(
+                left = LengthPercentage.Length(0f),
+                right = LengthPercentage.Length(0f),
+                top = LengthPercentage.Length(0f),
+                bottom = LengthPercentage.Length(0f)
+            )
         }
     }
+}
 
-    /**
-     * The sum of the two fields of the [`Rect`] representing the cross axis.
-     *
-     * If the [`FlexDirection`] is [`FlexDirection::Row`] or [`FlexDirection::RowReverse`], this is [`Rect::vertical`].
-     * Otherwise, this is [`Rect::horizontal`].
-     */
-    fun Rect<Float>.crossAxisSum(direction: FlexDirection): Float {
-        return if (direction.isRow()) {
-            verticalAxisSum()
-        } else {
-            horizontalAxisSum()
-        }
+/// FLOAT VARIANTS
+
+operator fun Rect<Float>.plus(rhs: Rect<Float>): Rect<Float> {
+    return Rect(
+        left = left + rhs.left,
+        right = right + rhs.right,
+        top = top + rhs.top,
+        bottom = bottom + rhs.bottom
+    )
+}
+
+/**
+ * The sum of [`Rect.start`](Rect) and [`Rect.end`](Rect)
+ *
+ * This is typically used when computing total padding.
+ *
+ * **NOTE:** this is *not* the width of the rectangle.
+ */
+fun Rect<Float>.horizontalAxisSum(): Float {
+    return left + right
+}
+
+/**
+ * The sum of [`Rect.top`](Rect) and [`Rect.bottom`](Rect)
+ *
+ * This is typically used when computing total padding.
+ *
+ * **NOTE:** this is *not* the height of the rectangle.
+ */
+fun Rect<Float>.verticalAxisSum(): Float {
+    return top + bottom
+}
+
+/**
+ * Both horizontal_axis_sum and vertical_axis_sum as a Size<T>
+ *
+ * **NOTE:** this is *not* the width/height of the rectangle.
+ */
+fun Rect<Float>.sumAxes(): Size<Float> {
+    return Size(width = horizontalAxisSum(), height = verticalAxisSum())
+}
+
+/**
+ * The sum of the two fields of the [`Rect`] representing the main axis.
+ *
+ * This is typically used when computing total padding.
+ *
+ * If the [`FlexDirection`] is [`FlexDirection::Row`] or [`FlexDirection::RowReverse`], this is [`Rect::horizontal`].
+ * Otherwise, this is [`Rect::vertical`].
+ */
+fun Rect<Float>.mainAxisSum(direction: FlexDirection): Float {
+    return if (direction.isRow()) {
+        horizontalAxisSum()
+    } else {
+        verticalAxisSum()
     }
+}
+
+/**
+ * The sum of the two fields of the [`Rect`] representing the cross axis.
+ *
+ * If the [`FlexDirection`] is [`FlexDirection::Row`] or [`FlexDirection::RowReverse`], this is [`Rect::vertical`].
+ * Otherwise, this is [`Rect::horizontal`].
+ */
+fun Rect<Float>.crossAxisSum(direction: FlexDirection): Float {
+    return if (direction.isRow()) {
+        verticalAxisSum()
+    } else {
+        horizontalAxisSum()
+    }
+}
+
+/// LENGTH_PERCENTAGE VARIANTS
+
+/**
+ * Converts any `parent`-relative values for Rect into an absolute Rect
+ */
+fun Rect<LengthPercentage>.resolveOrZero(context: Option<Float>): Rect<Float> {
+    return Rect (
+        left = left.resolveOrZero(context),
+        right = right.resolveOrZero(context),
+        top = top.resolveOrZero(context),
+        bottom = bottom.resolveOrZero(context)
+    )
+}
+
+/**
+ * Converts any `parent`-relative values for Rect into an absolute Rect
+ */
+fun Rect<LengthPercentage>.resolveOrZero(context: Size<Option<Float>>): Rect<Float> {
+    return Rect (
+        left = left.resolveOrZero(context.width),
+        right = right.resolveOrZero(context.width),
+        top = top.resolveOrZero(context.height),
+        bottom = bottom.resolveOrZero(context.height)
+    )
+}
+
+/// LENGTH_PERCENTAGE_AUTO VARIANTS
+
+/**
+ * Converts any `parent`-relative values for Rect into an absolute Rect
+ */
+fun Rect<LengthPercentageAuto>.resolveOrZero(context: Option<Float>): Rect<Float> {
+    return Rect (
+        left = left.resolveOrZero(context),
+        right = right.resolveOrZero(context),
+        top = top.resolveOrZero(context),
+        bottom = bottom.resolveOrZero(context)
+    )
 }

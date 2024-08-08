@@ -1,7 +1,7 @@
 package be.arby.taffy.tree.layout
 
-import be.arby.taffy.geometry.Line
-import be.arby.taffy.geometry.Size
+import be.arby.taffy.geom.Line
+import be.arby.taffy.geom.Size
 import be.arby.taffy.lang.Option
 import be.arby.taffy.style.dimension.AvailableSpace
 

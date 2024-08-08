@@ -1,11 +1,11 @@
 package be.arby.taffy.tree.layout
 
-import be.arby.taffy.geometry.Point
-import be.arby.taffy.geometry.Rect
-import be.arby.taffy.geometry.Size
+import be.arby.taffy.geom.Point
+import be.arby.taffy.geom.Rect
+import be.arby.taffy.geom.Size
 import be.arby.taffy.lang.Default
-import be.arby.taffy.utils.f32Max
-import be.arby.taffy.utils.f32Min
+import be.arby.taffy.util.f32Max
+import be.arby.taffy.util.f32Min
 
 /**
  * The final result of a layout algorithm for a single node.
@@ -86,12 +86,12 @@ class Layout(
             return Layout(
                 order = 0,
                 location = Point.ZERO,
-                size = Size.zeroF(),
-                contentSize = Size.zeroF(),
-                scrollbarSize = Size.zeroF(),
-                border = Rect.zeroF(),
-                padding = Rect.zeroF(),
-                margin = Rect.zeroF()
+                size = Size.ZERO,
+                contentSize = Size.ZERO,
+                scrollbarSize = Size.ZERO,
+                border = Rect.ZERO,
+                padding = Rect.ZERO,
+                margin = Rect.ZERO
             )
         }
 
@@ -105,12 +105,12 @@ class Layout(
             return Layout(
                 order = order,
                 location = Point.ZERO,
-                size = Size.zeroF(),
-                contentSize = Size.zeroF(),
-                scrollbarSize = Size.zeroF(),
-                border = Rect.zeroF(),
-                padding = Rect.zeroF(),
-                margin = Rect.zeroF()
+                size = Size.ZERO,
+                contentSize = Size.ZERO,
+                scrollbarSize = Size.ZERO,
+                border = Rect.ZERO,
+                padding = Rect.ZERO,
+                margin = Rect.ZERO
             )
         }
     }

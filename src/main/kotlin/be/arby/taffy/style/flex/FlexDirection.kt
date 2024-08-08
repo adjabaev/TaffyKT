@@ -1,7 +1,7 @@
 package be.arby.taffy.style.flex
 
+import be.arby.taffy.geom.AbsoluteAxis
 import be.arby.taffy.lang.Default
-import be.arby.taffy.maths.axis.AbsoluteAxis
 
 /**
  * The direction of the flexbox layout main axis.

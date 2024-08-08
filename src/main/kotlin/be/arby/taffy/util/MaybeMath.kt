@@ -1,6 +1,6 @@
 package be.arby.taffy.util
 
-import be.arby.taffy.geometry.Size
+import be.arby.taffy.geom.Size
 import be.arby.taffy.lang.Option
 import be.arby.taffy.maths.max
 import be.arby.taffy.maths.min

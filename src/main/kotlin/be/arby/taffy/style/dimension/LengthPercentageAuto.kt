@@ -1,7 +1,6 @@
 package be.arby.taffy.style.dimension
 
 import be.arby.taffy.lang.Option
-import be.arby.taffy.resolve.ResolveOrZero
 
 /**
  * A unit of linear measurement
@@ -37,6 +36,21 @@ sealed class LengthPercentageAuto {
             is Percent -> Option.Some(context * this.f)
             is Auto -> Option.None
         }
+    }
+
+    fun maybeResolve(context: Option<Float>): Option<Float> {
+        return when (this) {
+            is Length -> Option.Some(this.f)
+            is Percent -> context.map { dim -> dim * this.f }
+            is Auto -> Option.None
+        }
+    }
+
+    /**
+     * Will return a default value of result is evaluated to `None`
+     */
+    fun resolveOrZero(context: Option<Float>): Float {
+        return maybeResolve(context).unwrapOr(0f)
     }
 
     /**
