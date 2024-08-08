@@ -1,0 +1,204 @@
+package be.arby.taffy.geom
+
+import be.arby.taffy.geometry.Size
+import be.arby.taffy.style.flex.FlexDirection
+
+/**
+ * An axis-aligned UI rectangle
+ */
+data class Rect<T>(
+    /**
+     * This can represent either the x-coordinate of the starting edge,
+     * or the amount of padding on the starting side.
+     *
+     * The starting edge is the left edge when working with LTR text,
+     * and the right edge when working with RTL text.
+     */
+    var left: T,
+    /**
+     * This can represent either the x-coordinate of the ending edge,
+     * or the amount of padding on the ending side.
+     *
+     * The ending edge is the right edge when working with LTR text,
+     * and the left edge when working with RTL text.
+     */
+    var right: T,
+    /**
+     * This can represent either the y-coordinate of the top edge,
+     * or the amount of padding on the top side.
+     */
+    var top: T,
+    /**
+     * This can represent either the y-coordinate of the bottom edge,
+     * or the amount of padding on the bottom side.
+     */
+    var bottom: T
+) {
+    /**
+     * Applies the function `f` to all four sides of the rect
+     *
+     * When applied to the left and right sides, the width is used
+     * as the second parameter of `f`.
+     * When applied to the top or bottom sides, the height is used instead.
+     */
+    fun <R, U> zipSize(size: Size<U>, f: (T, U) -> R): Rect<R> {
+        return Rect(
+            left = f(left, size.width),
+            right = f(right, size.width),
+            top = f(top, size.height),
+            bottom = f(bottom, size.height)
+        )
+    }
+
+    /**
+     * Applies the function `f` to the left, right, top, and bottom properties
+     *
+     * This is used to transform a `Rect<T>` into a `Rect<R>`.
+     */
+    fun <R> map(f: (T) -> R): Rect<R> {
+        return Rect(
+            left = f(left),
+            right = f(right),
+            top = f(top),
+            bottom = f(bottom)
+        )
+    }
+
+    /**
+     * Returns a `Line<T>` representing the left and right properties of the Rect
+     */
+    fun horizontalComponents(): Line<T> {
+        return Line(start = left, end = right)
+    }
+
+    /**
+     * Returns a `Line<T>` containing the top and bottom properties of the Rect
+     */
+    fun verticalComponents(): Line<T> {
+        return Line(start = top, end = bottom)
+    }
+
+    /**
+     * The `start` or `top` value of the [`Rect`], from the perspective of the main layout axis
+     */
+    fun mainStart(direction: FlexDirection): T {
+        return if (direction.isRow()) {
+            left
+        } else {
+            top
+        }
+    }
+
+    /**
+     * The `end` or `bottom` value of the [`Rect`], from the perspective of the main layout axis
+     */
+    fun mainEnd(direction: FlexDirection): T {
+        return if (direction.isRow()) {
+            right
+        } else {
+            bottom
+        }
+    }
+
+    /**
+     * The `start` or `top` value of the [`Rect`], from the perspective of the cross layout axis
+     */
+    fun crossStart(direction: FlexDirection): T {
+        return if (direction.isRow()) {
+            top
+        } else {
+            left
+        }
+    }
+
+    /**
+     * The `end` or `bottom` value of the [`Rect`], from the perspective of the main layout axis
+     */
+    fun crossEnd(direction: FlexDirection): T {
+        return if (direction.isRow()) {
+            bottom
+        } else {
+            right
+        }
+    }
+
+    companion object {
+        val ZERO = Rect(left = 0f, right = 0f, top = 0f, bottom = 0f)
+
+        fun new(start: Float, end: Float, top: Float, bottom: Float): Rect<Float> {
+            return Rect(left = start, right = end, top = top, bottom = bottom)
+        }
+    }
+
+    /// FLOAT VARIANTS
+
+    operator fun Rect<Float>.plus(rhs: Rect<Float>): Rect<Float> {
+        return Rect(
+            left = left + rhs.left,
+            right = right + rhs.right,
+            top = top + rhs.top,
+            bottom = bottom + rhs.bottom
+        )
+    }
+
+    /**
+     * The sum of [`Rect.start`](Rect) and [`Rect.end`](Rect)
+     *
+     * This is typically used when computing total padding.
+     *
+     * **NOTE:** this is *not* the width of the rectangle.
+     */
+    fun Rect<Float>.horizontalAxisSum(): Float {
+        return left + right
+    }
+
+    /**
+     * The sum of [`Rect.top`](Rect) and [`Rect.bottom`](Rect)
+     *
+     * This is typically used when computing total padding.
+     *
+     * **NOTE:** this is *not* the height of the rectangle.
+     */
+    fun Rect<Float>.verticalAxisSum(): Float {
+        return top + bottom
+    }
+
+    /**
+     * Both horizontal_axis_sum and vertical_axis_sum as a Size<T>
+     *
+     * **NOTE:** this is *not* the width/height of the rectangle.
+     */
+    fun Rect<Float>.sumAxes(): Size<Float> {
+        return Size(width = horizontalAxisSum(), height = verticalAxisSum())
+    }
+
+    /**
+     * The sum of the two fields of the [`Rect`] representing the main axis.
+     *
+     * This is typically used when computing total padding.
+     *
+     * If the [`FlexDirection`] is [`FlexDirection::Row`] or [`FlexDirection::RowReverse`], this is [`Rect::horizontal`].
+     * Otherwise, this is [`Rect::vertical`].
+     */
+    fun Rect<Float>.mainAxisSum(direction: FlexDirection): Float {
+        return if (direction.isRow()) {
+            horizontalAxisSum()
+        } else {
+            verticalAxisSum()
+        }
+    }
+
+    /**
+     * The sum of the two fields of the [`Rect`] representing the cross axis.
+     *
+     * If the [`FlexDirection`] is [`FlexDirection::Row`] or [`FlexDirection::RowReverse`], this is [`Rect::vertical`].
+     * Otherwise, this is [`Rect::horizontal`].
+     */
+    fun Rect<Float>.crossAxisSum(direction: FlexDirection): Float {
+        return if (direction.isRow()) {
+            verticalAxisSum()
+        } else {
+            horizontalAxisSum()
+        }
+    }
+}
