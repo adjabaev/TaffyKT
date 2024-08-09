@@ -28,6 +28,10 @@ enum class AbsoluteAxis {
         }
     }
 
+    fun into(): RequestedAxis {
+        return RequestedAxis.from(this)
+    }
+
     companion object: TryFrom<RequestedAxis, AbsoluteAxis> {
         override fun tryFrom(value: RequestedAxis): Result<AbsoluteAxis> {
             return when (value) {

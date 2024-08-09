@@ -85,11 +85,11 @@ data class Point<T>(
 
     companion object {
         /**
-         * A [`Point`] with values (0, 0), representing the origin
+         * A [Point] with values (0, 0), representing the origin
          */
         val ZERO = Point(x = 0f, y = 0f)
         /**
-         * A [`Point`] with values (None, None)
+         * A [Point] with values (None, None)
          */
         val NONE: Point<Option<Float>> = Point(x = Option.None, y = Option.None)
     }
@@ -101,5 +101,9 @@ operator fun Point<Float>.plus(rhs: Point<Float>): Point<Float> {
 }
 
 fun Point<Option<Float>>.into(): Size<Option<Float>> {
+    return Size(width = x, height = y)
+}
+
+fun Point<Float>.into(): Size<Float> {
     return Size(width = x, height = y)
 }

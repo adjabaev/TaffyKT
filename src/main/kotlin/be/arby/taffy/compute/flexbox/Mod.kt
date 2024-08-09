@@ -1,12 +1,13 @@
 package be.arby.taffy.compute.flexbox
 
+import be.arby.taffy.compute.common.applyAlignmentFallback
+import be.arby.taffy.compute.common.computeAlignmentOffset
+import be.arby.taffy.compute.common.computeContentSizeContribution
 import be.arby.taffy.geom.*
-import be.arby.taffy.lang.Option
+import be.arby.taffy.lang.*
 import be.arby.taffy.lang.collections.*
-import be.arby.taffy.lang.f32Max
-import be.arby.taffy.lang.max
-import be.arby.taffy.lang.min
 import be.arby.taffy.maths.into
+import be.arby.taffy.maths.intoAS
 import be.arby.taffy.style.BoxGenerationMode
 import be.arby.taffy.style.BoxSizing
 import be.arby.taffy.style.Overflow
@@ -25,7 +26,6 @@ import be.arby.taffy.tree.NodeId
 import be.arby.taffy.tree.layout.*
 import be.arby.taffy.tree.traits.LayoutFlexboxContainer
 import be.arby.taffy.util.*
-import java.util.concurrent.atomic.AtomicReference
 
 class Mod {
 
@@ -151,7 +151,24 @@ class Mod {
 
         // If container size is undefined, determine the container's main size
         // and then re-resolve gaps based on newly determined size
-        // TODO - ARBY | 261-282
+        val innerMainSize = constants.nodeInnerSize.main(constants.dir)
+
+        if (innerMainSize.isSome()) {
+            val outerMainSize = innerMainSize.unwrap() + constants.contentBoxInset.mainAxisSum(constants.dir)
+            constants.innerContainerSize.setMain(constants.dir, innerMainSize.unwrap())
+            constants.containerSize.setMain(constants.dir, outerMainSize)
+        } else {
+            // Sets constants.container_size and constants.outer_container_size
+            determineContainerMainSize(tree, availableSpace, flexLines, constants)
+            constants.nodeInnerSize.setMain(constants.dir, Option.Some(constants.innerContainerSize.main(constants.dir)))
+            constants.nodeOuterSize.setMain(constants.dir, Option.Some(constants.containerSize.main(constants.dir)))
+
+            // Re-resolve percentage gaps
+            val style = tree.getFlexboxContainerStyle(node)
+            val innerContainerSize = constants.innerContainerSize.main(constants.dir)
+            val newGap = style.gap().main(constants.dir).maybeResolve(innerContainerSize).unwrapOr(0f)
+            constants.gap.setMain(constants.dir, newGap)
+        }
 
         // 6. Resolve the flexible lengths of all the flex items to find their used main size.
         for (line in flexLines) {
@@ -230,7 +247,7 @@ class Mod {
                     Size.NONE,
                     Size.NONE,
                     Size.MAX_CONTENT,
-                    SizingMode::InherentSize,
+                    SizingMode.INHERENT_SIZE,
                     Line.FALSE,
                 )
             }
@@ -243,15 +260,12 @@ class Mod {
         } else {
             flexLines[0]
                 .items
-                .iter()
-                .find(| item | constants . is_column || item . align_self == AlignSelf ::Baseline)
-            .orElse(|| flex_lines [0].items.iter().next())
-            .map(| child | {
-                let offset_vertical = if constants.is_row { child.offset_cross } else {
-                child.offset_main
-            };
-                offset_vertical + child.baseline
-            })
+                .findOptional { item -> constants.isColumn || item.alignSelf == AlignSelf.BASELINE }
+                .orElse { flexLines[0].items.next() }
+                .map { child ->
+                    val offsetVertical = if (constants.isRow) child.offsetCross else child.offsetMain
+                    offsetVertical + child.baseline
+                }
         }
 
         return LayoutOutput.fromSizesAndBaselines(
@@ -296,7 +310,7 @@ class Mod {
         val scrollbarGutter = style.overflow().transpose().map { overflow ->
             when (overflow) {
                 Overflow.SCROLL -> style.scrollbarWidth()
-                else -> 0.0f
+                else -> 0f
             }
         }
         // TODO: make side configurable based on the `direction` property
@@ -523,7 +537,7 @@ class Mod {
                 .maybeClamp(childMinCross, childMaxCross)
 
             // Known dimensions for child sizing
-            val childKnownDimensions = {
+            val childKnownDimensions = run {
                 val ckd = child.size.withMain(dir, Option.None)
                 if (child.alignSelf == AlignSelf.STRETCH && ckd.cross(dir).isNone()) {
                     ckd.setCross(
@@ -620,7 +634,7 @@ class Mod {
             // used min and max main sizes (and flooring the content box size at zero).
 
             child.innerFlexBasis =
-                child.flexBasis - child.padding.mainAxisSum(constants.dir) - child.border.mainAxisSum(constants.dir);
+                child.flexBasis - child.padding.mainAxisSum(constants.dir) - child.border.mainAxisSum(constants.dir)
 
             val paddingBorderAxesSums = (child.padding + child.border).sumAxes().map { v -> Option.Some(v) }
 
@@ -642,7 +656,7 @@ class Mod {
                         childKnownDimensions,
                         childParentSize,
                         childAvailableSpace,
-                        SizingMode::ContentSize,
+                        SizingMode.CONTENT_SIZE,
                         dir.mainAxis(),
                         Line.FALSE
                     )
@@ -651,7 +665,7 @@ class Mod {
                 // 4.5. Automatic Minimum Size of Flex Items
                 // https://www.w3.org/TR/css-flexbox-1/#min-size-auto
                 val clampedMinContentSize =
-                    minContentMainSize.maybeMin(child.size.main(dir)).maybeMin(child.maxSize.main(dir));
+                    minContentMainSize.maybeMin(child.size.main(dir)).maybeMin(child.maxSize.main(dir))
                 clampedMinContentSize.maybeMax(paddingBorderAxesSums.main(dir))
             })
 
@@ -784,17 +798,17 @@ class Mod {
         val dir = constants.dir
         val mainContentBoxInset = constants.contentBoxInset.mainAxisSum(constants.dir)
 
-        var outerMainSize = constants.nodeOuterSize.main(constants.dir).unwrapOrElse({
+        var outerMainSize = constants.nodeOuterSize.main(constants.dir).unwrapOrElse {
             val v = availableSpace.main(dir)
             when {
                 v is AvailableSpace.Definite -> {
                     val longestLineLength = lines
                         .map { line ->
-                            val lineMainAxisGap = sumAxisGaps(constants.gap.main(constants.dir), line.items.len());
+                            val lineMainAxisGap = sumAxisGaps(constants.gap.main(constants.dir), line.items.len())
                             val totalTargetSize = line
                                 .items
                                 .map { child ->
-                                    val paddingBorderSum = (child.padding + child.border).mainAxisSum(constants.dir);
+                                    val paddingBorderSum = (child.padding + child.border).mainAxisSum(constants.dir)
                                     (child.flexBasis + child.margin.mainAxisSum(constants.dir)).max(paddingBorderSum)
                                 }
                                 .sum()
@@ -802,7 +816,7 @@ class Mod {
                         }
                         .maxByRs { a, b -> a.compareTo(b) }
                         .unwrapOr(0f)
-                    val size = longestLineLength + mainContentBoxInset;
+                    val size = longestLineLength + mainContentBoxInset
                     if (lines.len() > 1) {
                         f32Max(size, v.availableSpace)
                     } else {
@@ -813,11 +827,11 @@ class Mod {
                 v is AvailableSpace.MinContent && constants.isWrap -> {
                     val longestLineLength = lines
                         .map { line ->
-                            val lineMainAxisGap = sumAxisGaps(constants.gap.main(constants.dir), line.items.len());
+                            val lineMainAxisGap = sumAxisGaps(constants.gap.main(constants.dir), line.items.len())
                             val totalTargetSize = line
                                 .items
                                 .map { child ->
-                                    val paddingBorderSum = (child.padding + child.border).mainAxisSum(constants.dir);
+                                    val paddingBorderSum = (child.padding + child.border).mainAxisSum(constants.dir)
                                     (child.flexBasis + child.margin.mainAxisSum(constants.dir)).max(paddingBorderSum)
                                 }
                                 .sum()
@@ -854,7 +868,7 @@ class Mod {
                                 .maybeMax(flexBasisMin)
                                 .or(flexBasisMin)
                                 .unwrapOr(item.resolvedMinimumMainSize)
-                                .max(item.resolvedMinimumMainSize);
+                                .max(item.resolvedMinimumMainSize)
                             val maxMainSize =
                                 styleMax.maybeMin(flexBasisMax).or(flexBasisMax).unwrapOr(Float.POSITIVE_INFINITY)
 
@@ -886,7 +900,7 @@ class Mod {
                                     val childAvailableSpace = availableSpace.withCross(dir, crossAxisAvailableSpace)
 
                                     // Known dimensions for child sizing
-                                    val childKnownDimensions = {
+                                    val childKnownDimensions = run {
                                         val ckd = item.size.withMain(dir, Option.None)
                                         if (item.alignSelf == AlignSelf.STRETCH && ckd.cross(dir).isNone()) {
                                             ckd.setCross(
@@ -939,7 +953,7 @@ class Mod {
                                 if (diff > 0f) {
                                     diff / f32Max(1f, item.flexGrow)
                                 } else if (diff < 0f) {
-                                    val scaledShrinkFactor = f32Max(1f, item.flexShrink * item.innerFlexBasis);
+                                    val scaledShrinkFactor = f32Max(1f, item.flexShrink * item.innerFlexBasis)
                                     diff / scaledShrinkFactor
                                 } else {
                                     // We are assuming that diff is 0.0 here and that we haven't accidentally introduced a NaN
@@ -952,7 +966,7 @@ class Mod {
                         // so we don't either. But if we did want to, we'd need this computation here (and to use it below):
                         //
                         // Within each line, find the largest max-content flex fraction among all the flex items.
-                        // let line_flex_fraction = line
+                        // var line_flex_fraction = line
                         //     .items
                         //     .iter()
                         //     .map(|item| item.content_flex_fraction)
@@ -969,7 +983,7 @@ class Mod {
                             .items
                             .map { item ->
                                 val flexFraction = item.contentFlexFraction
-                                // let flex_fraction = line_flex_fraction;
+                                // var flex_fraction = line_flex_fraction
 
                                 val flexContribution = if (item.contentFlexFraction > 0f) {
                                     f32Max(1f, item.flexGrow) * flexFraction
@@ -977,7 +991,7 @@ class Mod {
                                     val scaledShrinkFactor = f32Max(1f, item.flexShrink) * item.innerFlexBasis
                                     scaledShrinkFactor * flexFraction
                                 } else {
-                                    0.0
+                                    0f
                                 }
                                 val size = item.flexBasis + flexContribution
                                 item.outerTargetSize.setMain(constants.dir, size)
@@ -993,13 +1007,13 @@ class Mod {
                     mainSize + mainContentBoxInset
                 }
             }
-        })
+        }
 
         outerMainSize = outerMainSize
             .maybeClamp(constants.minSize.main(constants.dir), constants.maxSize.main(constants.dir))
             .max(mainContentBoxInset - constants.scrollbarGutter.main(constants.dir))
 
-        // let outer_main_size = inner_main_size + constants.padding_border.main_axis_sum(constants.dir)
+        // var outer_main_size = inner_main_size + constants.padding_border.main_axis_sum(constants.dir)
         val innerMainSize = f32Max(outerMainSize - mainContentBoxInset, 0f)
         constants.containerSize.setMain(constants.dir, outerMainSize)
         constants.innerContainerSize.setMain(constants.dir, innerMainSize)
@@ -1036,7 +1050,7 @@ class Mod {
         for (child in line.items) {
             val paddingBorderSum = (child.padding + child.border).crossAxisSum(constants.dir)
 
-            val childKnownMain = constants.containerSize.main(constants.dir).into()
+            val childKnownMain = constants.containerSize.main(constants.dir).intoAS()
 
             val childCross = child
                 .size
@@ -1053,35 +1067,19 @@ class Mod {
                 tree.measureChildSize(
                     child.node,
                     Size(
-                        width = if (constants.isRow) {
-                            child.targetSize.width.into()
-                        } else {
-                            childCross
-                        },
-                        height = if (constants.isRow) {
-                            childCross
-                        } else {
-                            child.targetSize.height.into()
-                        }
+                        width = if (constants.isRow) child.targetSize.width.into() else childCross,
+                        height = if (constants.isRow) childCross else  child.targetSize.height.into()
                     ),
                     constants.nodeInnerSize,
                     Size(
-                        width = if (constants.isRow) {
-                            childKnownMain
-                        } else {
-                            childAvailableCross
-                        },
-                        height = if (constants.isRow) {
-                            childAvailableCross
-                        } else {
-                            childKnownMain
-                        }
+                        width = if (constants.isRow) childKnownMain else childAvailableCross,
+                        height = if (constants.isRow) childAvailableCross else childKnownMain
                     ),
                     SizingMode.CONTENT_SIZE,
                     constants.dir.crossAxis(),
                     Line.FALSE,
                 )
-                    .maybe_clamp(child.minSize.cross(constants.dir), child.maxSize.cross(constants.dir))
+                    .maybeClamp(child.minSize.cross(constants.dir), child.maxSize.cross(constants.dir))
                     .max(paddingBorderSum)
             }
             val childOuterCross = childInnerCross + child.margin.crossAxisSum(constants.dir)
@@ -1138,16 +1136,8 @@ class Mod {
                     ),
                     constants.nodeInnerSize,
                     Size(
-                        width = if (constants.isRow) {
-                            constants.containerSize.width.into()
-                        } else {
-                            availableSpace.width.maybeSet(nodeSize.width)
-                        },
-                        height = if (constants.isRow) {
-                            availableSpace.height.maybeSet(nodeSize.height)
-                        } else {
-                            constants.containerSize.height.into()
-                        }
+                        width = if (constants.isRow) constants.containerSize.width.intoAS() else availableSpace.width.maybeSet(nodeSize.width),
+                        height = if (constants.isRow) availableSpace.height.maybeSet(nodeSize.height) else constants.containerSize.height.intoAS()
                     ),
                     SizingMode.CONTENT_SIZE,
                     Line.FALSE
@@ -1290,7 +1280,7 @@ class Mod {
             val lineCrossSize = line.crossSize
 
             for (child in line.items) {
-                val childStyle = tree.getFlexboxChildStyle(child.node);
+                val childStyle = tree.getFlexboxChildStyle(child.node)
                 child.targetSize.setCross(
                     constants.dir,
                     if (child.alignSelf == AlignSelf.STRETCH
@@ -1506,15 +1496,15 @@ class Mod {
         val totalCrossAxisGap = sumAxisGaps(constants.gap.cross(constants.dir), flexLines.len())
         val totalLineCrossSize: Float = flexLines.map { line -> line.crossSize }.sum()
 
-        val paddingBorderSum = constants.contentBoxInset.crossAxisSum(constants.dir);
-        val crossScrollbarGutter = constants.scrollbarGutter.cross(constants.dir);
-        val minCrossSize = constants.minSize.cross(constants.dir);
-        val maxCrossSize = constants.maxSize.cross(constants.dir);
+        val paddingBorderSum = constants.contentBoxInset.crossAxisSum(constants.dir)
+        val crossScrollbarGutter = constants.scrollbarGutter.cross(constants.dir)
+        val minCrossSize = constants.minSize.cross(constants.dir)
+        val maxCrossSize = constants.maxSize.cross(constants.dir)
         val outerContainerSize = nodeSize
             .cross(constants.dir)
             .unwrapOr(totalLineCrossSize + totalCrossAxisGap + paddingBorderSum)
             .maybeClamp(minCrossSize, maxCrossSize)
-            .max(paddingBorderSum - crossScrollbarGutter);
+            .max(paddingBorderSum - crossScrollbarGutter)
         val innerContainerSize = f32Max(outerContainerSize - paddingBorderSum, 0f)
 
         constants.containerSize.setCross(constants.dir, outerContainerSize)
@@ -1535,13 +1525,13 @@ class Mod {
         constants: AlgoConstants,
         totalCrossSize: Float
     ) {
-        val numLines = flexLines.len();
+        val numLines = flexLines.len()
         val gap = constants.gap.cross(constants.dir)
         val totalCrossAxisGap = sumAxisGaps(gap, numLines)
         val freeSpace = constants.innerContainerSize.cross(constants.dir) - totalCrossSize - totalCrossAxisGap
         val isSafe = false; // TODO: Implement safe alignment
 
-        val alignContentMode = applyAlignmentFallback(freeSpace, numLines, constants.alignContent, isSafe);
+        val alignContentMode = applyAlignmentFallback(freeSpace, numLines, constants.alignContent, isSafe)
 
         val alignLine = { (i, line): IndexedValue<FlexLine> ->
             line.offsetCross =
@@ -1561,10 +1551,10 @@ class Mod {
     fun calculateFlexItem(
         tree: LayoutFlexboxContainer,
         item: FlexItem,
-        totalOffsetMain: Float,
+        totalOffsetMain: RustDeref<Float>,
         totalOffsetCross: Float,
         lineOffsetCross: Float,
-        totalContentSize: AtomicReference<Size<Float>>,
+        totalContentSize: RustDeref<Size<Float>>,
         containerSize: Size<Float>,
         nodeInnerSize: Size<Option<Float>>,
         direction: FlexDirection
@@ -1573,13 +1563,13 @@ class Mod {
             item.node,
             item.targetSize.map { s -> s.into() },
             nodeInnerSize,
-            containerSize.map { s -> s.into() },
+            containerSize.map { s -> s.intoAS() },
             SizingMode.CONTENT_SIZE,
             Line.FALSE,
         )
         val (size, contentSize) = layoutOutput
 
-        val offsetMain = totalOffsetMain +
+        val offsetMain = totalOffsetMain.get() +
                 item.offsetMain +
                 item.margin.mainStart(direction) +
                 (item.inset.mainStart(direction).or(item.inset.mainEnd(direction).map { pos -> -pos }).unwrapOr(0f))
@@ -1595,8 +1585,8 @@ class Mod {
             val innerBaseline = layoutOutput.firstBaselines.y.unwrapOr(size.height)
             item.baseline = baselineOffsetCross + innerBaseline
         } else {
-            val baselineOffsetMain = totalOffsetMain + item.offsetMain + item.margin.mainStart(direction)
-            val innerBaseline = layoutOutput.firstBaselines.y.unwrap_or(size.height)
+            val baselineOffsetMain = totalOffsetMain.get() + item.offsetMain + item.margin.mainStart(direction)
+            val innerBaseline = layoutOutput.firstBaselines.y.unwrapOr(size.height)
             item.baseline = baselineOffsetMain + innerBaseline
         }
 
@@ -1625,8 +1615,9 @@ class Mod {
 
         totalOffsetMain += item.offsetMain + item.margin.mainAxisSum(direction) + size.main(direction)
 
-        totalContentSize =
-            totalContentSize.f32Max(computeContentSizeContribution(location, size, contentSize, item.overflow))
+        totalContentSize.set(
+            totalContentSize.get().f32Max(computeContentSizeContribution(location, size, contentSize, item.overflow))
+        )
     }
 
     /**
@@ -1635,14 +1626,47 @@ class Mod {
     fun calculateLayoutLine(
         tree: LayoutFlexboxContainer,
         line: FlexLine,
-        totalOffsetCross: Float,
+        totalOffsetCross: RustDeref<Float>,
         contentSize: Size<Float>,
         containerSize: Size<Float>,
         nodeInnerSize: Size<Option<Float>>,
         paddingBorder: Rect<Float>,
         direction: FlexDirection
     ) {
+        val totalOffsetMain = paddingBorder.mainStart(direction)
+        val lineOffsetCross = line.offsetCross
 
+        if (direction.isReverse()) {
+            for (item in line.items.rev()) {
+                calculateFlexItem(
+                    tree,
+                    item,
+                    RustDeref(totalOffsetMain),
+                    totalOffsetCross.get(),
+                    lineOffsetCross,
+                    RustDeref(contentSize),
+                    containerSize,
+                    nodeInnerSize,
+                    direction
+                )
+            }
+        } else {
+            for (item in line.items) {
+                calculateFlexItem(
+                    tree,
+                    item,
+                    RustDeref(totalOffsetMain),
+                    totalOffsetCross.get(),
+                    lineOffsetCross,
+                    RustDeref(contentSize),
+                    containerSize,
+                    nodeInnerSize,
+                    direction,
+                )
+            }
+        }
+
+        totalOffsetCross += lineOffsetCross + line.crossSize
     }
 
     /**
@@ -1653,7 +1677,39 @@ class Mod {
         flexLines: List<FlexLine>,
         constants: AlgoConstants
     ): Size<Float> {
+        val totalOffsetCross = constants.contentBoxInset.crossStart(constants.dir)
 
+        var contentSize = Size.ZERO
+
+        if (constants.isWrapReverse) {
+            for (line in flexLines.rev()) {
+                calculateLayoutLine(
+                    tree,
+                    line,
+                    RustDeref(totalOffsetCross),
+                    contentSize,
+                    constants.containerSize,
+                    constants.nodeInnerSize,
+                    constants.contentBoxInset,
+                    constants.dir,
+                )
+            }
+        } else {
+            for (line in flexLines) {
+                calculateLayoutLine(
+                    tree,
+                    line,
+                    RustDeref(totalOffsetCross),
+                    contentSize,
+                    constants.containerSize,
+                    constants.nodeInnerSize,
+                    constants.contentBoxInset,
+                    constants.dir
+                )
+            }
+        }
+
+        return contentSize
     }
 
     /**
@@ -1664,7 +1720,280 @@ class Mod {
         node: NodeId,
         constants: AlgoConstants
     ): Size<Float> {
+        val containerWidth = constants.containerSize.width
+        val containerHeight = constants.containerSize.height
+        val insetRelativeSize =
+            constants.containerSize - constants.border.sumAxes() - constants.scrollbarGutter.into()
 
+        var contentSize = Size.ZERO
+
+        for (order in 0 until tree.childCount(node)) {
+            val child = tree.getChildId(node, order)
+            val childStyle = tree.getFlexboxChildStyle(child)
+
+            // Skip items that are display:none or are not position:absolute
+            if (childStyle.boxGenerationMode() == BoxGenerationMode.NONE ||
+                childStyle.position() != Position.ABSOLUTE
+            ) {
+                continue
+            }
+
+            val overflow = childStyle.overflow()
+            val scrollbarWidth = childStyle.scrollbarWidth()
+            val aspectRatio = childStyle.aspectRatio()
+            val alignSelf = childStyle.alignSelf().unwrapOr(constants.alignItems)
+            val margin = childStyle.margin().map { margin -> margin.resolveToOption(insetRelativeSize.width) }
+            val padding = childStyle.padding().resolveOrZero(Option.Some(insetRelativeSize.width))
+            val border = childStyle.border().resolveOrZero(Option.Some(insetRelativeSize.width))
+            val paddingBorderSum = (padding + border).sumAxes()
+            var boxSizingAdjustment =
+                if (childStyle.boxSizing() == BoxSizing.CONTENT_BOX) paddingBorderSum else Size.ZERO
+
+            // Resolve inset
+            // Insets are resolved against the container size minus border
+            val left = childStyle.inset().left.maybeResolve(insetRelativeSize.width)
+            val right = childStyle.inset().right.maybeResolve(insetRelativeSize.width)
+            val top = childStyle.inset().top.maybeResolve(insetRelativeSize.height)
+            val bottom = childStyle.inset().bottom.maybeResolve(insetRelativeSize.height)
+
+            // Compute known dimensions from min/max/inherent size styles
+            val styleSize = childStyle
+                .size()
+                .maybeResolve(insetRelativeSize)
+                .maybeApplyAspectRatio(aspectRatio)
+                .maybeAdd(boxSizingAdjustment)
+            val minSize = childStyle
+                .minSize()
+                .maybeResolve(insetRelativeSize)
+                .maybeApplyAspectRatio(aspectRatio)
+                .maybeAdd(boxSizingAdjustment)
+                .or(paddingBorderSum.map { v -> Option.Some(v) })
+                .maybeMax(paddingBorderSum)
+            val maxSize = childStyle
+                .maxSize()
+                .maybeResolve(insetRelativeSize)
+                .maybeApplyAspectRatio(aspectRatio)
+                .maybeAdd(boxSizingAdjustment)
+            var knownDimensions = styleSize.maybeClamp(minSize, maxSize)
+
+            // Fill in width from left/right and reapply aspect ratio if:
+            //   - Width is not already known
+            //   - Item has both left and right inset properties set
+            val (width, lf, rg) = Triple(knownDimensions.width, left, right)
+            if (width.isNone() && lf.isSome() && rg.isSome()) {
+                val newWidthRaw =
+                    insetRelativeSize.width.maybeSub(margin.left).maybeSub(margin.right) - lf.unwrap() - rg.unwrap()
+                knownDimensions.width = Option.Some(f32Max(newWidthRaw, 0f))
+                knownDimensions =
+                    knownDimensions.maybeApplyAspectRatio(aspectRatio).maybeClamp(minSize, maxSize)
+            }
+
+            // Fill in height from top/bottom and reapply aspect ratio if:
+            //   - Height is not already known
+            //   - Item has both top and bottom inset properties set
+            val (height, tp, bt) = Triple(knownDimensions.height, top, bottom)
+            if (height.isNone() && tp.isSome() && bt.isSome()) {
+                val newHeightRaw =
+                    insetRelativeSize.height.maybeSub(margin.top).maybeSub(margin.bottom) - tp.unwrap() - bt.unwrap()
+                knownDimensions.height = Option.Some(f32Max(newHeightRaw, 0f))
+                knownDimensions =
+                    knownDimensions.maybeApplyAspectRatio(aspectRatio).maybeClamp(minSize, maxSize)
+            }
+            val layoutOutput = tree.performChildLayout(
+                child,
+                knownDimensions,
+                constants.nodeInnerSize,
+                Size(
+                    width = AvailableSpace.Definite(containerWidth.maybeClamp(minSize.width, maxSize.width)),
+                    height = AvailableSpace.Definite(containerHeight.maybeClamp(minSize.height, maxSize.height))
+                ),
+                SizingMode.INHERENT_SIZE,
+                Line.FALSE
+            )
+            val measuredSize = layoutOutput.size
+            val finalSize = knownDimensions.unwrapOr(measuredSize).maybeClamp(minSize, maxSize)
+
+            val nonAutoMargin = margin.map { m -> m.unwrapOr(0f) }
+
+            val freeSpace = Size(
+                width = constants.containerSize.width - finalSize.width - nonAutoMargin.horizontalAxisSum(),
+                height = constants.containerSize.height - finalSize.height - nonAutoMargin.verticalAxisSum(),
+            )
+                .f32Max(Size.ZERO)
+
+            // Expand auto margins to fill available space
+            val resolvedMargin = run {
+                val autoMarginSize = Size(
+                    width = run {
+                        val autoMarginCount = margin.left.isNone().toInt() + margin.right.isNone().toInt()
+                        if (autoMarginCount > 0f) {
+                            freeSpace.width / autoMarginCount.toFloat()
+                        } else {
+                            0f
+                        }
+                    },
+                    height = run {
+                        val autoMarginCount = margin.top.isNone().toInt() + margin.bottom.isNone().toInt()
+                        if (autoMarginCount > 0) {
+                            freeSpace.height / autoMarginCount.toFloat()
+                        } else {
+                            0f
+                        }
+                    }
+                )
+
+                Rect(
+                    left = margin.left.unwrapOr(autoMarginSize.width),
+                    right = margin.right.unwrapOr(autoMarginSize.width),
+                    top = margin.top.unwrapOr(autoMarginSize.height),
+                    bottom = margin.bottom.unwrapOr(autoMarginSize.height),
+                )
+            }
+
+            // Determine flex-relative insets
+            val (startMain, endMain) = if (constants.isRow) Pair(left, right) else Pair(top, bottom)
+            val (startCross, endCross) = if (constants.isRow) Pair(top, bottom) else Pair(left, right)
+
+            // Apply main-axis alignment
+            // var free_main_space = free_space.main(constants.dir) - resolved_margin.main_axis_sum(constants.dir)
+            val offsetMain: Float = if (startMain.isSome()) {
+                startMain.unwrap() + constants.border.mainStart(constants.dir) + resolvedMargin.mainStart(constants.dir)
+            } else if (endMain.isSome()) {
+                constants.containerSize.main(constants.dir) -
+                        constants.border.mainEnd(constants.dir) -
+                        constants.scrollbarGutter.main(constants.dir) -
+                        finalSize.main(constants.dir) -
+                        endMain.unwrap() -
+                        resolvedMargin.mainEnd(constants.dir)
+            } else {
+                val jc = constants.justifyContent.unwrapOr(JustifyContent.START)
+                val isWrapReverse = constants.isWrapReverse
+
+                // Stretch is an invalid value for justify_content in the flexbox algorithm, so we
+                // treat it as if it wasn't set (and thus we default to FlexStart behaviour)
+                if (
+                    (jc == JustifyContent.SPACE_BETWEEN) ||
+                    (jc == JustifyContent.START) ||
+                    (jc == JustifyContent.STRETCH && !isWrapReverse) ||
+                    (jc == JustifyContent.FLEX_START && !isWrapReverse) ||
+                    (jc == JustifyContent.FLEX_END && isWrapReverse)
+                ) {
+                    constants.contentBoxInset.mainStart(constants.dir) + resolvedMargin.mainStart(constants.dir)
+                } else if (
+                    (jc == JustifyContent.END) ||
+                    (jc == JustifyContent.FLEX_END && !isWrapReverse) ||
+                    (jc == JustifyContent.FLEX_START && isWrapReverse) ||
+                    (jc == JustifyContent.STRETCH && isWrapReverse)
+                ) {
+                    constants.containerSize.main(constants.dir) -
+                            constants.contentBoxInset.mainEnd(constants.dir) -
+                            finalSize.main(constants.dir) -
+                            resolvedMargin.mainEnd(constants.dir)
+                } else if (
+                    (jc == JustifyContent.SPACE_EVENLY) ||
+                    (jc == JustifyContent.SPACE_AROUND) ||
+                    (jc == JustifyContent.CENTER)
+                ) {
+                    (constants.containerSize.main(constants.dir) +
+                            constants.contentBoxInset.mainStart(constants.dir) -
+                            constants.contentBoxInset.mainEnd(constants.dir) -
+                            finalSize.main(constants.dir) +
+                            resolvedMargin.mainStart(constants.dir) -
+                            resolvedMargin.mainEnd(constants.dir)) / 2f
+                } else {
+                    0f // Should never produce
+                }
+            }
+
+            // Apply cross-axis alignment
+            // var free_cross_space = free_space.cross(constants.dir) - resolved_margin.cross_axis_sum(constants.dir)
+            val offsetCross: Float = if (startCross.isSome()) {
+                startCross.unwrap() + constants.border.crossStart(constants.dir) + resolvedMargin.crossStart(constants.dir)
+            } else if (endCross.isSome()) {
+                constants.containerSize.cross(constants.dir) -
+                        constants.border.crossEnd(constants.dir) -
+                        constants.scrollbarGutter.cross(constants.dir) -
+                        finalSize.cross(constants.dir) -
+                        endCross.unwrap() -
+                        resolvedMargin.crossEnd(constants.dir)
+            } else {
+                val isWrapReverse = constants.isWrapReverse
+
+                // Stretch alignment does not apply to absolutely positioned items
+                // See "Example 3" at https://www.w3.org/TR/css-flexbox-1/#abspos-items
+                // Note: Stretch should be FlexStart not Start when we support both
+                if (
+                    (alignSelf == AlignItems.START) ||
+                    ((alignSelf == AlignItems.BASELINE || alignSelf == AlignItems.STRETCH || alignSelf == AlignItems.FLEX_START) && !isWrapReverse) ||
+                    (alignSelf == AlignItems.FLEX_END && isWrapReverse)
+                ) {
+                    constants.contentBoxInset.crossStart(constants.dir) + resolvedMargin.crossStart(constants.dir)
+                } else if (
+                    (alignSelf == AlignItems.END) ||
+                    ((alignSelf == AlignItems.BASELINE || alignSelf == AlignItems.STRETCH || alignSelf == AlignItems.FLEX_START) && isWrapReverse) ||
+                    (alignSelf == AlignItems.FLEX_END && !isWrapReverse)
+                ) {
+                    constants.containerSize.cross(constants.dir) -
+                            constants.contentBoxInset.crossEnd(constants.dir) -
+                            finalSize.cross(constants.dir) -
+                            resolvedMargin.crossEnd(constants.dir)
+                } else if (alignSelf == AlignItems.CENTER) {
+                    (constants.containerSize.cross(constants.dir) +
+                            constants.contentBoxInset.crossStart(constants.dir) -
+                            constants.contentBoxInset.crossEnd(constants.dir) -
+                            finalSize.cross(constants.dir) +
+                            resolvedMargin.crossStart(constants.dir) -
+                            resolvedMargin.crossEnd(constants.dir)
+                            ) / 2f
+                } else {
+                    0f // Should never produce
+                }
+            }
+
+            val location = when (constants.isRow) {
+                true -> Point(x = offsetMain, y = offsetCross)
+                false -> Point(x = offsetCross, y = offsetMain)
+            }
+            val scrollbarSize = Size(
+                width = if (overflow.y == Overflow.SCROLL) scrollbarWidth else 0f,
+                height = if (overflow.x == Overflow.SCROLL) scrollbarWidth else 0f
+            )
+            tree.setUnroundedLayout(
+                child,
+                Layout(
+                    order = order,
+                    size = finalSize,
+                    contentSize = layoutOutput.contentSize,
+                    scrollbarSize = scrollbarSize,
+                    location = location,
+                    padding = padding,
+                    border = border,
+                    margin = resolvedMargin
+                )
+            )
+
+            val sizeContentSizeContribution = Size(
+                width = if (overflow.x == Overflow.VISIBLE) {
+                    f32Max(finalSize.width, layoutOutput.contentSize.width)
+                } else {
+                    finalSize.width
+                },
+                height = if (overflow.y == Overflow.VISIBLE) {
+                    f32Max(finalSize.height, layoutOutput.contentSize.height)
+                } else {
+                    finalSize.height
+                }
+            )
+            if (sizeContentSizeContribution.hasNonZeroArea()) {
+                val contentSizeContribution = Size(
+                    width = location.x + sizeContentSizeContribution.width,
+                    height = location.y + sizeContentSizeContribution.height,
+                )
+                contentSize = contentSize.f32Max(contentSizeContribution)
+            }
+        }
+
+        return contentSize
     }
 
     /**

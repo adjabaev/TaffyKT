@@ -46,6 +46,10 @@ sealed class LengthPercentageAuto {
         }
     }
 
+    fun maybeResolve(context: Float): Option<Float> {
+        return maybeResolve(Option.from(context))
+    }
+
     /**
      * Will return a default value of result is evaluated to `None`
      */

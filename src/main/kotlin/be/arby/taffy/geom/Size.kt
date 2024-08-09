@@ -1,14 +1,15 @@
 package be.arby.taffy.geom
 
 import be.arby.taffy.lang.Option
-import be.arby.taffy.style.flex.FlexDirection
 import be.arby.taffy.lang.f32Max
 import be.arby.taffy.lang.f32Min
+import be.arby.taffy.style.dimension.AvailableSpace
 import be.arby.taffy.style.dimension.Dimension
 import be.arby.taffy.style.dimension.LengthPercentage
+import be.arby.taffy.style.flex.FlexDirection
 
 /**
- * The width and height of a [`Rect`]
+ * The width and height of a [Rect]
  */
 data class Size<T>(
     /**
@@ -20,6 +21,13 @@ data class Size<T>(
      */
     var height: T
 ) {
+    fun getAbs(axis: AbsoluteAxis): T {
+        return when (axis) {
+            AbsoluteAxis.HORIZONTAL -> width
+            AbsoluteAxis.VERTICAL -> height
+        }
+    }
+
     /**
      * Applies the function `f` to both the width and height
      *
@@ -196,6 +204,9 @@ data class Size<T>(
          */
         val NONE: Size<Option<Float>> = Size(width = Option.None, height = Option.None)
 
+        val MIN_CONTENT: Size<AvailableSpace> = Size(width = AvailableSpace.MIN_CONTENT, height = AvailableSpace.MIN_CONTENT)
+        val MAX_CONTENT: Size<AvailableSpace> = Size(width = AvailableSpace.MAX_CONTENT, height = AvailableSpace.MAX_CONTENT)
+
         /**
          * A [`Size<Option<Float>>`] with `Some(width)` and `Some(height)` as parameters
          */
@@ -266,6 +277,10 @@ fun Size<Dimension>.maybeResolve(context: Size<Option<Float>>): Size<Option<Floa
     return Size(width = width.maybeResolve(context.width), height = height.maybeResolve(context.height))
 }
 
+fun Size<Dimension>.maybeResolve(context: Size<Float>): Size<Option<Float>> {
+    return Size(width = width.maybeResolve(context.width), height = height.maybeResolve(context.height))
+}
+
 /// FLOAT VARIANTS
 
 operator fun Size<Float>.plus(rhs: Size<Float>): Size<Float> {
@@ -311,13 +326,22 @@ fun Size<Option<Float>>.maybeApplyAspectRatio(aspectRatio: Option<Float>): Size<
         is Option.Some -> when (width) {
             is Option.Some -> when (height) {
                 is Option.Some -> this
-                is Option.None -> Size(width = Option.Some(width.unwrap()), height = Option.Some(width.unwrap() / aspectRatio.value))
+                is Option.None -> Size(
+                    width = Option.Some(width.unwrap()),
+                    height = Option.Some(width.unwrap() / aspectRatio.value)
+                )
             }
+
             is Option.None -> when (height) {
-                is Option.Some -> Size(width = Option.Some(height.unwrap() * aspectRatio.value), height = Option.Some(height.unwrap()))
+                is Option.Some -> Size(
+                    width = Option.Some(height.unwrap() * aspectRatio.value),
+                    height = Option.Some(height.unwrap())
+                )
+
                 is Option.None -> this
             }
         }
+
         is Option.None -> this
     }
 }
@@ -349,7 +373,7 @@ fun <T> Size<Option<T>>.bothAxisDefined(): Boolean {
  * Converts any `parent`-relative values for Rect into an absolute Rect
  */
 fun Size<LengthPercentage>.resolveOrZero(context: Size<Option<Float>>): Size<Float> {
-    return Size (
+    return Size(
         width = width.resolveOrZero(context.width),
         height = height.resolveOrZero(context.height)
     )

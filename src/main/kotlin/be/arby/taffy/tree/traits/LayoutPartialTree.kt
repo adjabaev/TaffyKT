@@ -1,11 +1,14 @@
 package be.arby.taffy.tree.traits
 
+import be.arby.taffy.geom.AbsoluteAxis
+import be.arby.taffy.geom.Line
+import be.arby.taffy.geom.Size
+import be.arby.taffy.lang.Option
 import be.arby.taffy.style.CoreStyle
+import be.arby.taffy.style.dimension.AvailableSpace
 import be.arby.taffy.tree.NodeId
 import be.arby.taffy.tree.cache.Cache
-import be.arby.taffy.tree.layout.Layout
-import be.arby.taffy.tree.layout.LayoutInput
-import be.arby.taffy.tree.layout.LayoutOutput
+import be.arby.taffy.tree.layout.*
 
 /**
  * Any type that implements [`LayoutPartialTree`] can be laid out using [Taffy's algorithms](crate::compute)
@@ -33,4 +36,55 @@ interface LayoutPartialTree: TraversePartialTree {
      * Compute the specified node's size or full layout given the specified constraints
      */
     fun computeChildLayout(nodeId: NodeId, inputs: LayoutInput): LayoutOutput
+
+    /**
+     * Compute the size of the node given the specified constraints
+     */
+    fun measureChildSize(
+        nodeId: NodeId,
+        knownDimensions: Size<Option<Float>>,
+        parentSize: Size<Option<Float>>,
+        availableSpace: Size<AvailableSpace>,
+        sizingMode: SizingMode,
+        axis: AbsoluteAxis,
+        verticalMarginsAreCollapsible: Line<Boolean>
+    ): Float {
+        return computeChildLayout(
+            nodeId,
+            LayoutInput(
+                knownDimensions = knownDimensions,
+                parentSize = parentSize,
+                availableSpace = availableSpace,
+                sizingMode = sizingMode,
+                axis = axis.into(),
+                runMode = RunMode.COMPUTE_SIZE,
+                verticalMarginsAreCollapsible = verticalMarginsAreCollapsible
+            ),
+        ).size.getAbs(axis)
+    }
+
+    /**
+     * Perform a full layout on the node given the specified constraints
+     */
+    fun performChildLayout(
+        nodeId: NodeId,
+        knownDimensions: Size<Option<Float>>,
+        parentSize: Size<Option<Float>>,
+        availableSpace: Size<AvailableSpace>,
+        sizingMode: SizingMode,
+        verticalMarginsAreCollapsible: Line<Boolean>,
+    ): LayoutOutput {
+        return computeChildLayout(
+            nodeId,
+            LayoutInput(
+                knownDimensions = knownDimensions,
+                parentSize = parentSize,
+                availableSpace = availableSpace,
+                sizingMode = sizingMode,
+                axis = RequestedAxis.BOTH,
+                runMode = RunMode.PERFORM_LAYOUT,
+                verticalMarginsAreCollapsible = verticalMarginsAreCollapsible,
+            ),
+        )
+    }
 }
