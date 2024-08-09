@@ -62,6 +62,16 @@ sealed class Option<out T> {
     }
 
     /**
+     * Creates a copy of current object
+     */
+    fun copy(): Option<T> {
+        return when (this) {
+            is Some -> from(value)
+            is None -> None
+        }
+    }
+
+    /**
      * Apply a function to the value if it is present, otherwise return None
      */
     fun filter(predicate: (T) -> Boolean): Option<T> {
@@ -95,5 +105,25 @@ sealed class Option<out T> {
         fun <T> from(value: @UnsafeVariance T?): Option<T> {
             return if (value == null) None else Some(value)
         }
+    }
+}
+
+operator fun <T: Comparable<T>> Option<T>.compareTo(other: Option<T>): Int {
+    return when (this) {
+        is Option.Some -> when (other) {
+            is Option.Some -> value.compareTo(other.value)
+            is Option.None -> 1
+        }
+        is Option.None -> when (other) {
+            is Option.Some -> -1
+            is Option.None -> 0
+        }
+    }
+}
+
+operator fun <T: Comparable<T>> Option<T>.compareTo(other: T): Int {
+    return when (this) {
+        is Option.Some -> value.compareTo(other)
+        is Option.None -> -1
     }
 }

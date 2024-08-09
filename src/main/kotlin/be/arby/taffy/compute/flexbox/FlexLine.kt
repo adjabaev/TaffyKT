@@ -1,7 +1,7 @@
 package be.arby.taffy.compute.flexbox
 
 /**
- * A line of [`FlexItem`] used for intermediate computation
+ * A line of [FlexItem] used for intermediate computation
  */
 data class FlexLine(
     /**

@@ -1,6 +1,5 @@
 package be.arby.taffy.geom
 
-import be.arby.taffy.lang.From
 import be.arby.taffy.lang.Option
 import be.arby.taffy.style.flex.FlexDirection
 
@@ -92,6 +91,13 @@ data class Point<T>(
          * A [Point] with values (None, None)
          */
         val NONE: Point<Option<Float>> = Point(x = Option.None, y = Option.None)
+
+        fun zeroF(): Point<Float> {
+            return Point(
+                x = 0f,
+                y = 0f
+            )
+        }
     }
 }
 

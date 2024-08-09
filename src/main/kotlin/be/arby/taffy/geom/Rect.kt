@@ -124,6 +124,10 @@ data class Rect<T>(
         }
     }
 
+    fun horizontal_axis_sum(): Any {
+
+    }
+
     companion object {
         val ZERO = Rect(left = 0f, right = 0f, top = 0f, bottom = 0f)
 

@@ -378,3 +378,25 @@ fun Size<LengthPercentage>.resolveOrZero(context: Size<Option<Float>>): Size<Flo
         height = height.resolveOrZero(context.height)
     )
 }
+
+/// AVAILABLE_SPACE VARIANTS
+
+/**
+ * Convert `Size<AvailableSpace>` into `Size<Option<f32>>`
+ */
+fun Size<AvailableSpace>.intoOptions(): Size<Option<Float>> {
+    return Size(
+        width = width.intoOption(),
+        height = height.intoOption()
+    )
+}
+
+/**
+ * If passed value is Some then return AvailableSpace::Definite containing that value, else return self
+ */
+fun Size<AvailableSpace>.maybeSet(value: Size<Option<Float>>): Size<AvailableSpace> {
+    return Size(
+        width = width.maybeSet(value.width),
+        height = height.maybeSet(value.height)
+    )
+}
