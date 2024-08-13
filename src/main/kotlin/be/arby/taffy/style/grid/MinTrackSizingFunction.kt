@@ -2,12 +2,32 @@ package be.arby.taffy.style.grid
 
 import be.arby.taffy.lang.Option
 import be.arby.taffy.style.dimension.LengthPercentage
-import be.arby.taffy.lang.Into
 
+/**
+ * Minimum track sizing function
+ * Specifies the minimum size of a grid track. A grid track will automatically size between it's minimum and maximum size based
+ * on the size of it's contents, the amount of available space, and the sizing constraint the grid is being size under.
+ * See <https://developer.mozilla.org/en-US/docs/Web/CSS/grid-template-columns>
+ */
 sealed class MinTrackSizingFunction {
+    /**
+     * Track minimum size should be a fixed length or percentage value
+     */
     data class Fixed(val l: LengthPercentage) : MinTrackSizingFunction()
+
+    /**
+     * Track minimum size should be content sized under a min-content constraint
+     */
     data object MinContent : MinTrackSizingFunction()
+
+    /**
+     * Track minimum size should be content sized under a max-content constraint
+     */
     data object MaxContent : MinTrackSizingFunction()
+
+    /**
+     * Track minimum size should be automatically sized
+     */
     data object Auto : MinTrackSizingFunction()
 
     /**
@@ -17,6 +37,11 @@ sealed class MinTrackSizingFunction {
         return this is MinContent || this is MaxContent || this is Auto
     }
 
+    /**
+     * Returns fixed point values directly. Attempts to resolve percentage values against
+     * the passed available_space and returns if this results in a concrete value (which it
+     * will if the available_space is `Some`). Otherwise returns `None`.
+     */
     fun definiteValue(parentSize: Option<Float>): Option<Float> {
         return when {
             this is Fixed && this.l is LengthPercentage.Length -> Option.Some(this.l.f)
@@ -26,6 +51,10 @@ sealed class MinTrackSizingFunction {
         }
     }
 
+    /**
+     * Resolve percentage values against the passed parent_size, returning Some(value)
+     * Non-percentage values always return None.
+     */
     fun resolvedPercentageSize(parentSize: Float): Option<Float> {
         return when {
             this is Fixed && this.l is LengthPercentage.Percent -> Option.Some(this.l.f * parentSize)
@@ -44,22 +73,10 @@ sealed class MinTrackSizingFunction {
         val MIN_CONTENT: MinTrackSizingFunction = MinContent
         val MAX_CONTENT: MinTrackSizingFunction = MaxContent
 
-        @JvmStatic
-        fun fromPoints(points: Into<Float>): MinTrackSizingFunction {
-            return fromPoints(points.into())
-        }
-
-        @JvmStatic
-        fun fromPoints(points: Float): MinTrackSizingFunction {
+        fun fromLength(points: Float): MinTrackSizingFunction {
             return Fixed(LengthPercentage.fromLength(points))
         }
 
-        @JvmStatic
-        fun fromPercent(percent: Into<Float>): MinTrackSizingFunction {
-            return fromPercent(percent.into())
-        }
-
-        @JvmStatic
         fun fromPercent(percent: Float): MinTrackSizingFunction {
             return Fixed(LengthPercentage.fromPercent(percent))
         }

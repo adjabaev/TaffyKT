@@ -6,7 +6,7 @@ import be.arby.taffy.lang.Option
 import be.arby.taffy.lang.collections.enumerate
 import be.arby.taffy.lang.compareTo
 import be.arby.taffy.lang.f32Max
-import be.arby.taffy.lang.tuples.Quadruple
+import be.arby.taffy.lang.tuples.T4
 import be.arby.taffy.style.BoxGenerationMode
 import be.arby.taffy.style.BoxSizing
 import be.arby.taffy.style.Overflow
@@ -357,7 +357,7 @@ fun performFinalLayoutOnInFlowChildren(
     resolvedContentBoxInset: Rect<Float>,
     textAlign: TextAlign,
     ownMarginsCollapseWithChildren: Line<Boolean>,
-): Quadruple<Size<Float>, Float, CollapsibleMarginSet, CollapsibleMarginSet> {
+): T4<Size<Float>, Float, CollapsibleMarginSet, CollapsibleMarginSet> {
     // Resolve container_inner_width for sizing child nodes using initial content_box_inset
     val containerInnerWidth = containerOuterWidth - contentBoxInset.horizontalAxisSum()
     val parentSize = Size(width = Option.Some(containerOuterWidth), height = Option.None)
@@ -524,7 +524,7 @@ fun performFinalLayoutOnInFlowChildren(
 
     committedYOffset += resolvedContentBoxInset.bottom + bottomYMarginOffset
     val contentHeight = f32Max(0f, committedYOffset)
-    return Quadruple(inflowContentSize, contentHeight, firstChildTopMarginSet, lastChildBottomMarginSet)
+    return T4(inflowContentSize, contentHeight, firstChildTopMarginSet, lastChildBottomMarginSet)
 }
 
 fun performAbsoluteLayoutOnAbsoluteChildren(

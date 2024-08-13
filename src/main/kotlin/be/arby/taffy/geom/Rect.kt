@@ -124,10 +124,6 @@ data class Rect<T>(
         }
     }
 
-    fun horizontal_axis_sum(): Any {
-
-    }
-
     companion object {
         val ZERO = Rect(left = 0f, right = 0f, top = 0f, bottom = 0f)
 
@@ -241,6 +237,7 @@ fun Rect<Float>.crossAxisSum(direction: FlexDirection): Float {
 /**
  * Converts any `parent`-relative values for Rect into an absolute Rect
  */
+@JvmName("resolveOrZeroLP")
 fun Rect<LengthPercentage>.resolveOrZero(context: Option<Float>): Rect<Float> {
     return Rect (
         left = left.resolveOrZero(context),
@@ -267,6 +264,7 @@ fun Rect<LengthPercentage>.resolveOrZero(context: Size<Option<Float>>): Rect<Flo
 /**
  * Converts any `parent`-relative values for Rect into an absolute Rect
  */
+@JvmName("resolveOrZeroLPA")
 fun Rect<LengthPercentageAuto>.resolveOrZero(context: Option<Float>): Rect<Float> {
     return Rect (
         left = left.resolveOrZero(context),

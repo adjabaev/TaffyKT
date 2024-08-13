@@ -128,15 +128,15 @@ sealed class AvailableSpace {
         val MAX_CONTENT = MaxContent
         val MIN_CONTENT = MinContent
 
-        fun fromLength(value: Float): Definite {
+        fun fromLength(value: Float): AvailableSpace {
             return Definite(value)
         }
 
-        override fun from(value: Float): AvailableSpace {
+        override fun from1(value: Float): AvailableSpace {
             return Definite(value)
         }
 
-        override fun from(value: Option<Float>): AvailableSpace {
+        override fun from2(value: Option<Float>): AvailableSpace {
             return when (value) {
                 is Option.Some -> Definite(value.unwrap())
                 is Option.None -> MaxContent

@@ -3,7 +3,7 @@ package be.arby.taffy.compute
 import be.arby.taffy.geom.*
 import be.arby.taffy.lang.Option
 import be.arby.taffy.lang.f32Max
-import be.arby.taffy.lang.tuples.Quadruple
+import be.arby.taffy.lang.tuples.T4
 import be.arby.taffy.style.BoxSizing
 import be.arby.taffy.style.CoreStyle
 import be.arby.taffy.style.Overflow
@@ -45,7 +45,7 @@ fun <MeasureFunction : (Size<Option<Float>>, Size<AvailableSpace>) -> Size<Float
             val nodeSize = knownDimensions
             val nodeMinSize = Size.NONE
             val nodeMaxSize = Size.NONE
-            Quadruple(nodeSize, nodeMinSize, nodeMaxSize, Option.None)
+            T4(nodeSize, nodeMinSize, nodeMaxSize, Option.None)
         }
 
         SizingMode.INHERENT_SIZE -> {
@@ -63,7 +63,7 @@ fun <MeasureFunction : (Size<Option<Float>>, Size<AvailableSpace>) -> Size<Float
             val styleMaxSize = style.maxSize().maybeResolve(parentSize).maybeAdd(boxSizingAdjustment)
 
             val nodeSize = knownDimensions.or(styleSize)
-            Quadruple(nodeSize, styleMinSize, styleMaxSize, aspectRatio)
+            T4(nodeSize, styleMinSize, styleMaxSize, aspectRatio)
         }
     }
 
@@ -113,7 +113,7 @@ fun <MeasureFunction : (Size<Option<Float>>, Size<AvailableSpace>) -> Size<Float
     availableSpace = Size(
         width = knownDimensions
             .width
-            .map(AvailableSpace::from)
+            .map(AvailableSpace::from1)
             .unwrapOr(availableSpace.width)
             .maybeSub(margin.horizontalAxisSum())
             .maybeSet(knownDimensions.width)
@@ -124,7 +124,7 @@ fun <MeasureFunction : (Size<Option<Float>>, Size<AvailableSpace>) -> Size<Float
             },
         height = knownDimensions
             .height
-            .map(AvailableSpace::from)
+            .map(AvailableSpace::from1)
             .unwrapOr(availableSpace.height)
             .maybeSub(margin.verticalAxisSum())
             .maybeSet(knownDimensions.height)

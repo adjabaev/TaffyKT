@@ -1,7 +1,7 @@
 package be.arby.taffy.tree.layout
 
-import be.arby.taffy.util.f32Max
-import be.arby.taffy.util.f32Min
+import be.arby.taffy.lang.f32Max
+import be.arby.taffy.lang.f32Min
 
 /**
  * A set of margins that are available for collapsing with for block layout's margin collapsing

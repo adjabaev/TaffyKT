@@ -4,8 +4,8 @@ import be.arby.taffy.geom.Point
 import be.arby.taffy.geom.Rect
 import be.arby.taffy.geom.Size
 import be.arby.taffy.lang.Default
-import be.arby.taffy.util.f32Max
-import be.arby.taffy.util.f32Min
+import be.arby.taffy.lang.f32Max
+import be.arby.taffy.lang.f32Min
 
 /**
  * The final result of a layout algorithm for a single node.

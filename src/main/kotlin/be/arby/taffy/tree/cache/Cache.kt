@@ -3,15 +3,25 @@ package be.arby.taffy.tree.cache
 import be.arby.taffy.geom.Size
 import be.arby.taffy.lang.Default
 import be.arby.taffy.lang.Option
-import be.arby.taffy.tree.layout.RunMode
 import be.arby.taffy.style.dimension.AvailableSpace
 import be.arby.taffy.tree.layout.LayoutOutput
+import be.arby.taffy.tree.layout.RunMode
 import be.arby.taffy.util.toInt
 
 data class Cache(
     var finalLayoutEntry: Option<CacheEntry<LayoutOutput>>,
     var measureEntries: Array<Option<CacheEntry<Size<Float>>>>
 ) {
+    private fun flatten(): List<CacheEntry<Size<Float>>> {
+        return measureEntries
+            .filter {
+                it.isSome()
+            }
+            .map {
+                it.unwrap()
+            }
+    }
+
     /**
      * Return the cache slot to cache the current computed result in
      *
@@ -73,6 +83,7 @@ data class Cache(
                 // Slot 6: x-axis available space is MaxContent or Definite and y-axis available space is MinContent
                 is AvailableSpace.MinContent -> return 6
             }
+
             is AvailableSpace.MinContent -> when (availableSpace.height) {
                 // Slot 7: x-axis available space is MinContent and y-axis available space is MaxContent or Definite
                 is AvailableSpace.MaxContent, is AvailableSpace.Definite -> return 7
@@ -91,21 +102,42 @@ data class Cache(
         runMode: RunMode
     ): Option<LayoutOutput> {
         return when (runMode) {
-            RunMode.PERFORM_LAYOUT -> finalLayoutEntry.filter { entry ->
-                val cachedSize = entry.content.size
+            RunMode.PERFORM_LAYOUT -> finalLayoutEntry
+                .filter { entry ->
+                    val cachedSize = entry.content.size
 
-                (knownDimensions.width == entry.knownDimensions.width || knownDimensions.width == Option.Some(cachedSize.width))
-                        && (knownDimensions.height == entry.knownDimensions.height
-                        || knownDimensions.height == Option.Some(cachedSize.height))
-                        && (knownDimensions.width.isSome()
-                        || entry.availableSpace.width.isRoughlyEqual(availableSpace.width))
-                        && (knownDimensions.height.isSome()
-                        || entry.availableSpace.height.isRoughlyEqual(availableSpace.height))
-            }
+                    (knownDimensions.width == entry.knownDimensions.width
+                            || knownDimensions.width == Option.Some(cachedSize.width))
+                            && (knownDimensions.height == entry.knownDimensions.height
+                            || knownDimensions.height == Option.Some(cachedSize.height))
+                            && (knownDimensions.width.isSome()
+                            || entry.availableSpace.width.isRoughlyEqual(availableSpace.width))
+                            && (knownDimensions.height.isSome()
+                            || entry.availableSpace.height.isRoughlyEqual(availableSpace.height))
+                }
+                .map { e -> e.content }
+
             RunMode.COMPUTE_SIZE -> {
-                val cacheSlot = computeCacheSlot(knownDimensions, availableSpace)
-                measureEntries[cacheSlot].map { it.content }
+                for (entry in flatten()) {
+                    val cachedSize = entry.content
+
+                    if (
+                        (knownDimensions.width == entry.knownDimensions.width || knownDimensions.width == Option.Some(
+                            cachedSize.width
+                        )) &&
+                        (knownDimensions.height == entry.knownDimensions.height || knownDimensions.height == Option.Some(
+                            cachedSize.height
+                        )) &&
+                        (knownDimensions.width.isSome() || entry.availableSpace.width.isRoughlyEqual(availableSpace.width)) &&
+                        (knownDimensions.height.isSome() || entry.availableSpace.height.isRoughlyEqual(availableSpace.height))
+                    ) {
+                        return Option.Some(LayoutOutput.fromOuterSize(cachedSize))
+                    }
+                }
+
+                Option.None
             }
+
             RunMode.PERFORM_HIDDEN_LAYOUT -> Option.None
         }
     }
@@ -129,6 +161,7 @@ data class Cache(
                     )
                 )
             }
+
             RunMode.COMPUTE_SIZE -> {
                 val cacheSlot = computeCacheSlot(knownDimensions, availableSpace)
                 measureEntries[cacheSlot] = Option.Some(
@@ -139,6 +172,7 @@ data class Cache(
                     )
                 )
             }
+
             RunMode.PERFORM_HIDDEN_LAYOUT -> {}
         }
     }
@@ -158,7 +192,7 @@ data class Cache(
         return finalLayoutEntry.isNone() && !measureEntries.any { entry -> entry.isSome() }
     }
 
-    companion object: Default<Cache> {
+    companion object : Default<Cache> {
         const val CACHE_SIZE = 9
 
         override fun default(): Cache = Cache.Companion.new()

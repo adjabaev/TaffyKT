@@ -11,6 +11,7 @@ import be.arby.taffy.style.helpers.TaffyGridSpan
  * A grid line placement using the normalized OriginZero coordinates to specify line positions.
  */
 typealias OriginZeroGridPlacement = GenericGridPlacement<OriginZeroLine>
+
 /**
  * A grid line placement specification. Used for grid-[row/column]-[start/end]. Named tracks are not implemented.
  *
@@ -24,7 +25,7 @@ typealias GridPlacement = GenericGridPlacement<GridLine>
  * A grid line placement specification which is generic over the coordinate system that it uses to define
  * grid line positions.
  *
- * GenericGridPlacement<GridLine> is aliased as GridPlacement and is exposed to users of Taffy to define styles.
+ * GridPlacement is aliased as GridPlacement and is exposed to users of Taffy to define styles.
  * GenericGridPlacement<OriginZeroLine> is aliased as OriginZeroGridPlacement and is used internally for placement computations.
  *
  * See [`crate::compute::grid::type::coordinates`] for documentation on the different coordinate systems.
@@ -33,62 +34,59 @@ sealed class GenericGridPlacement<LineType : GridCoordinate> : TaffyGridLine, Ta
     /**
      * Place item according to the auto-placement algorithm, and the parent's grid_auto_flow property
      */
-    object Auto: GenericGridPlacement<Nothing>() {
-        override fun isAuto(): Boolean {
-            return true
-        }
-    }
+    class Auto<LineType : GridCoordinate> : GenericGridPlacement<LineType>()
 
     /**
      * Place item at specified line (column or row) index
      */
-    data class Line<LineType : GridCoordinate>(val s: LineType) : GenericGridPlacement<LineType>() {
-        override fun isLine(): Boolean {
-            return true
-        }
-
-        override fun getLine(): LineType {
-            return s
-        }
-    }
+    data class Line<LineType : GridCoordinate>(val s: LineType) : GenericGridPlacement<LineType>()
 
     /**
      * Item should span specified number of tracks (columns or rows)
      */
-    data class Span<LineType : GridCoordinate>(val i: Int) : GenericGridPlacement<LineType>() {
-        override fun isSpan(): Boolean {
-            return true
-        }
-
-        override fun getSpan(): Int {
-            return i
-        }
-    }
+    data class Span<LineType : GridCoordinate>(val i: Int) : GenericGridPlacement<LineType>()
 
     open fun isAuto(): Boolean {
-        return false
+        return this is Auto
     }
 
     open fun isLine(): Boolean {
-        return false
-    }
-
-    open fun getLine(): LineType {
-        throw UnsupportedOperationException("Raw usage")
+        return this is Line
     }
 
     open fun isSpan(): Boolean {
-        return false
+        return this is Span
     }
 
-    open fun getSpan(): Int {
-        throw UnsupportedOperationException("Raw usage")
+    /**
+     * Apply a mapping function if the [`GridPlacement`] is a `Track`. Otherwise return `self` unmodified.
+     */
+    fun intoOriginZeroPlacement(explicitTrackCount: Int): OriginZeroGridPlacement {
+        return if (this is Auto) {
+            Auto()
+        } else if (this is Span) {
+            Span(i)
+
+            // Grid line zero is an invalid index, so it gets treated as Auto
+            // See: https://developer.mozilla.org/en-US/docs/Web/CSS/grid-row-start#values
+        } else {
+            val s = ((this as Line).s) as GridLine
+            if (s.asI16() == 0) Auto() else Line(s.intoOriginZeroLine(explicitTrackCount))
+        }
     }
 
-    companion object: Default<GridPlacement> {
-        val AUTO = Auto
+    fun <T> getLine(): T {
+        return ((this as Line).s) as T
+    }
 
-        fun fromLineIndex(index: Short): GridPlacement {
+    fun getSpan(): Int {
+        return (this as Span).i
+    }
+
+    companion object : Default<GridPlacement> {
+        val AUTO = Auto<GridLine>()
+
+        fun fromLineIndex(index: Int): GridPlacement {
             return Line(GridLine.from(index))
         }
 
@@ -97,7 +95,7 @@ sealed class GenericGridPlacement<LineType : GridCoordinate> : TaffyGridLine, Ta
         }
 
         override fun default(): GridPlacement {
-            return Auto
+            return Auto()
         }
     }
 }

@@ -359,3 +359,33 @@ fun Size<AvailableSpace>.maybeAdd(rhs: Size<Option<Float>>): Size<AvailableSpace
 fun Size<AvailableSpace>.maybeSub(rhs: Size<Option<Float>>): Size<AvailableSpace> {
     return Size(width = width.maybeSub(rhs.width), height = height.maybeSub(rhs.height))
 }
+
+/// Size<Float> -> Size<AvailableSpace> on Size<AvailableSpace>
+
+@JvmName("SfSas_Min")
+fun Size<AvailableSpace>.maybeMin(rhs: Size<Float>): Size<AvailableSpace> {
+    return Size(width = width.maybeMin(rhs.width), height = height.maybeMin(rhs.height))
+}
+
+@JvmName("SfSas_Max")
+fun Size<AvailableSpace>.maybeMax(rhs: Size<Float>): Size<AvailableSpace> {
+    return Size(width = width.maybeMax(rhs.width), height = height.maybeMax(rhs.height))
+}
+
+@JvmName("SfSas_Clamp")
+fun Size<AvailableSpace>.maybeClamp(min: Size<Float>, max: Size<Float>): Size<AvailableSpace> {
+    return Size(
+        width = width.maybeClamp(min.width, max.width),
+        height = height.maybeClamp(min.height, max.height)
+    )
+}
+
+@JvmName("SfSas_Add")
+fun Size<AvailableSpace>.maybeAdd(rhs: Size<Float>): Size<AvailableSpace> {
+    return Size(width = width.maybeAdd(rhs.width), height = height.maybeAdd(rhs.height))
+}
+
+@JvmName("SfSas_Sub")
+fun Size<AvailableSpace>.maybeSub(rhs: Size<Float>): Size<AvailableSpace> {
+    return Size(width = width.maybeSub(rhs.width), height = height.maybeSub(rhs.height))
+}

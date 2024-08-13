@@ -66,14 +66,14 @@ sealed class Dimension {
             return Percent(percent)
         }
 
-        override fun from(value: LengthPercentage): Dimension {
+        override fun from1(value: LengthPercentage): Dimension {
             return when (value) {
                 is LengthPercentage.Length -> Length(value.f)
                 is LengthPercentage.Percent -> Percent(value.f)
             }
         }
 
-        override fun from(value: LengthPercentageAuto): Dimension {
+        override fun from2(value: LengthPercentageAuto): Dimension {
             return when (value) {
                 is LengthPercentageAuto.Length -> Length(value.f)
                 is LengthPercentageAuto.Percent -> Percent(value.f)

@@ -258,7 +258,7 @@ fun computePreliminary(tree: LayoutFlexboxContainer, node: NodeId, inputs: Layou
     } else {
         flexLines[0]
             .items
-            .findOptional { item -> constants.isColumn || item.alignSelf == AlignSelf.BASELINE }
+            .findRust { item -> constants.isColumn || item.alignSelf == AlignSelf.BASELINE }
             .orElse { flexLines[0].items.next() }
             .map { child ->
                 val offsetVertical = if (constants.isRow) child.offsetCross else child.offsetMain
@@ -812,7 +812,7 @@ fun determineContainerMainSize(
                             .sum()
                         totalTargetSize + lineMainAxisGap
                     }
-                    .maxByRs { a, b -> a.compareTo(b) }
+                    .maxByRust { a, b -> a.compareTo(b) }
                     .unwrapOr(0f)
                 val size = longestLineLength + mainContentBoxInset
                 if (lines.len() > 1) {
@@ -835,7 +835,7 @@ fun determineContainerMainSize(
                             .sum()
                         totalTargetSize + lineMainAxisGap
                     }
-                    .maxByRs { a, b -> a.compareTo(b) }
+                    .maxByRust { a, b -> a.compareTo(b) }
                     .unwrapOr(0f)
                 longestLineLength + mainContentBoxInset
             }

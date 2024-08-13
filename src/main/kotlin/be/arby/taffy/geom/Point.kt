@@ -29,9 +29,9 @@ data class Point<T>(
 
     /**
      * Gets the extent of the specified layout axis
-     * Whether this is the width or height depends on the `GridAxis` provided
+     * Whether this is the width or height depends on the [GridAxis] provided
      */
-    fun getAxis(axis: AbstractAxis): T {
+    fun get(axis: AbstractAxis): T {
         return when (axis) {
             AbstractAxis.INLINE -> x
             AbstractAxis.BLOCK -> y
@@ -49,7 +49,7 @@ data class Point<T>(
      * Sets the extent of the specified layout axis
      * Whether this is the width or height depends on the `GridAxis` provided
      */
-    fun setAxis(axis: AbstractAxis, value: T) {
+    fun set(axis: AbstractAxis, value: T) {
         when (axis) {
             AbstractAxis.INLINE -> x = value
             AbstractAxis.BLOCK -> y = value
@@ -82,6 +82,28 @@ data class Point<T>(
         }
     }
 
+    /**
+     * Gets the extent of the specified layout axis
+     * Whether this is the width or height depends on the `GridAxis` provided
+     */
+    fun getAxis(axis: AbstractAxis): T {
+        return when (axis) {
+            AbstractAxis.INLINE -> x
+            AbstractAxis.BLOCK -> y
+        }
+    }
+
+    /**
+     * Sets the extent of the specified layout axis
+     * Whether this is the width or height depends on the `GridAxis` provided
+     */
+    fun setAxis(axis: AbstractAxis, value: T) {
+        when (axis) {
+            AbstractAxis.INLINE -> x = value
+            AbstractAxis.BLOCK -> y = value
+        }
+    }
+
     companion object {
         /**
          * A [Point] with values (0, 0), representing the origin
@@ -106,10 +128,12 @@ operator fun Point<Float>.plus(rhs: Point<Float>): Point<Float> {
     return Point(x = x + rhs.x, y = y + rhs.y)
 }
 
+@JvmName("plusOption")
 fun Point<Option<Float>>.into(): Size<Option<Float>> {
     return Size(width = x, height = y)
 }
 
+@JvmName("plusFloat")
 fun Point<Float>.into(): Size<Float> {
     return Size(width = x, height = y)
 }

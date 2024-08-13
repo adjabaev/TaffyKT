@@ -1,5 +1,7 @@
 package be.arby.taffy.tree.traits
 
+import be.arby.taffy.style.grid.GridContainerStyle
+import be.arby.taffy.style.grid.GridItemStyle
 import be.arby.taffy.tree.NodeId
 
 /**
@@ -9,10 +11,10 @@ interface LayoutGridContainer : LayoutPartialTree {
     /**
      * Get the container's styles
      */
-    fun getBlockContainerStyle(nodeId: NodeId): GridContainerStyle
+    fun getGridContainerStyle(nodeId: NodeId): GridContainerStyle
 
     /**
      * Get the child's styles
      */
-    fun getBlockChildStyle(childNodeId: NodeId): GridItemStyle
+    fun getGridChildStyle(childNodeId: NodeId): GridItemStyle
 }

@@ -1,5 +1,6 @@
 package be.arby.taffy.style
 
+import be.arby.taffy.compute.grid.types.GridLine
 import be.arby.taffy.geom.*
 import be.arby.taffy.lang.Default
 import be.arby.taffy.lang.Option
@@ -313,8 +314,8 @@ data class Style(
             gridAutoRows = ArrayList(),
             gridAutoColumns = ArrayList(),
             gridAutoFlow = GridAutoFlow.ROW,
-            gridRow = Line(start = GridPlacement.AUTO, end = GridPlacement.AUTO),
-            gridColumn = Line(start = GridPlacement.AUTO, end = GridPlacement.AUTO)
+            gridRow = Line(start = GenericGridPlacement.AUTO, end = GenericGridPlacement.AUTO),
+            gridColumn = Line(start = GenericGridPlacement.AUTO, end = GenericGridPlacement.AUTO)
         )
 
         override fun default(): Style {

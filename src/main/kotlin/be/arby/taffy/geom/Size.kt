@@ -29,6 +29,13 @@ data class Size<T>(
     }
 
     /**
+     * Made to make code resemble the original Rust code
+     */
+    fun t2(): Pair<T, T> {
+        return Pair(width, height)
+    }
+
+    /**
      * Applies the function `f` to both the width and height
      *
      * This is used to transform a `Size<T>` into a `Size<R>`.
@@ -273,10 +280,12 @@ data class Size<T>(
 
 /// DIMENSION VARIANTS
 
+@JvmName("maybeResolveDimensionSOF")
 fun Size<Dimension>.maybeResolve(context: Size<Option<Float>>): Size<Option<Float>> {
     return Size(width = width.maybeResolve(context.width), height = height.maybeResolve(context.height))
 }
 
+@JvmName("maybeResolveDimensionSF")
 fun Size<Dimension>.maybeResolve(context: Size<Float>): Size<Option<Float>> {
     return Size(width = width.maybeResolve(context.width), height = height.maybeResolve(context.height))
 }
