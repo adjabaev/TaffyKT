@@ -38,46 +38,34 @@ interface GridContainerStyle : CoreStyle {
     /**
      * Controls how items get placed into the grid for auto-placed items
      */
-    fun gridAutoFlow(): GridAutoFlow {
-        return Style.DEFAULT.gridAutoFlow
-    }
+    fun gridAutoFlow(): GridAutoFlow
 
     /**
      * How large should the gaps between items in a grid or flex container be?
      */
-    fun gap(): Size<LengthPercentage> {
-        return Style.DEFAULT.gap
-    }
+    fun gap(): Size<LengthPercentage>
 
     /// Alignment properties
 
     /**
      * How should content contained within this item be aligned in the cross/block axis
      */
-    fun alignContent(): Option<AlignContent> {
-        return Style.DEFAULT.alignContent
-    }
+    fun alignContent(): Option<AlignContent>
 
     /**
      * How should contained within this item be aligned in the main/inline axis
      */
-    fun justifyContent(): Option<JustifyContent> {
-        return Style.DEFAULT.justifyContent
-    }
+    fun justifyContent(): Option<JustifyContent>
 
     /**
      * How this node's children aligned in the cross/block axis?
      */
-    fun alignItems(): Option<AlignItems> {
-        return Style.DEFAULT.alignItems
-    }
+    fun alignItems(): Option<AlignItems>
 
     /**
      * How this node's children should be aligned in the inline axis
      */
-    fun justifyItems(): Option<AlignItems> {
-        return Style.DEFAULT.justifyItems
-    }
+    fun justifyItems(): Option<AlignItems>
 
     /**
      * Get a grid item's row or column placement depending on the axis passed

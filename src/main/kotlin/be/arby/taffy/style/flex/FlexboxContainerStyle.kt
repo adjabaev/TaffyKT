@@ -16,44 +16,32 @@ interface FlexboxContainerStyle: CoreStyle {
     /**
      * Which direction does the main axis flow in?
      */
-    fun flexDirection(): FlexDirection {
-        return Style.DEFAULT.flexDirection
-    }
+    fun flexDirection(): FlexDirection
 
     /**
      * Should elements wrap, or stay in a single line?
      */
-    fun flexWrap(): FlexWrap {
-        return Style.DEFAULT.flexWrap
-    }
+    fun flexWrap(): FlexWrap
 
     /**
      * How large should the gaps between items in a grid or flex container be?
      */
-    fun gap(): Size<LengthPercentage> {
-        return Style.DEFAULT.gap
-    }
+    fun gap(): Size<LengthPercentage>
 
     /// Alignment properties
 
     /**
      * How should content contained within this item be aligned in the cross/block axis
      */
-    fun alignContent(): Option<AlignContent> {
-        return Style.DEFAULT.alignContent
-    }
+    fun alignContent(): Option<AlignContent>
 
     /**
      * How this node's children aligned in the cross/block axis?
      */
-    fun alignItems(): Option<AlignItems> {
-        return Style.DEFAULT.alignItems
-    }
+    fun alignItems(): Option<AlignItems>
 
     /**
      * How this node's children should be aligned in the inline axis
      */
-    fun justifyContent(): Option<JustifyContent> {
-        return Style.DEFAULT.justifyContent
-    }
+    fun justifyContent(): Option<JustifyContent>
 }

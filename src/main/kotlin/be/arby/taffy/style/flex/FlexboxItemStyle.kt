@@ -18,29 +18,21 @@ interface FlexboxItemStyle: CoreStyle {
     /**
      * Sets the initial main axis size of the item
      */
-    fun flexBasis(): Dimension {
-        return Style.DEFAULT.flexBasis
-    }
+    fun flexBasis(): Dimension
 
     /**
      * The relative rate at which this item grows when it is expanding to fill space
      */
-    fun flexGrow(): Float {
-        return Style.DEFAULT.flexGrow
-    }
+    fun flexGrow(): Float
 
     /**
      * The relative rate at which this item shrinks when it is contracting to fit into space
      */
-    fun flexShrink(): Float {
-        return Style.DEFAULT.flexShrink
-    }
+    fun flexShrink(): Float
 
     /**
      * How this node should be aligned in the cross/block axis
      * Falls back to the parents [AlignItems] if not set
      */
-    fun alignSelf(): Option<AlignSelf> {
-        return Style.DEFAULT.alignSelf
-    }
+    fun alignSelf(): Option<AlignSelf>
 }

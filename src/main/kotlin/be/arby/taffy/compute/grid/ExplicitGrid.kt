@@ -1,5 +1,6 @@
 package be.arby.taffy.compute.grid
 
+import be.arby.taffy.auto
 import be.arby.taffy.compute.grid.types.GridTrack
 import be.arby.taffy.compute.grid.types.TrackCounts
 import be.arby.taffy.geom.AbsoluteAxis
@@ -260,7 +261,7 @@ fun initializeGridTracks(
         val iter = repeatElement(NonRepeatedTrackSizingFunction.AUTO)
         createImplicitTracks(tracks, counts.positiveImplicit, iter, gap)
     } else {
-        val iter = autoTracks.copied().cycle();
+        val iter = autoTracks.copied().cycle()
         createImplicitTracks(tracks, counts.positiveImplicit, iter, gap)
     }
 
@@ -278,8 +279,10 @@ fun createImplicitTracks(
     autoTracksIter: Sequence<NonRepeatedTrackSizingFunction>,
     gap: LengthPercentage
 ) {
+    val itr = autoTracksIter.iterator()
+
     for (a in 0 until count) {
-        val trackDef = autoTracksIter.next().unwrap()
+        val trackDef = itr.nextRust().unwrap()
         tracks.add(GridTrack.new(trackDef.minSizingFunction(), trackDef.maxSizingFunction()))
         tracks.add(GridTrack.gutter(gap))
     }

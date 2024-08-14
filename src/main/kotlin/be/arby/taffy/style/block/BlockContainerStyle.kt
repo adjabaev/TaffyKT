@@ -10,7 +10,5 @@ interface BlockContainerStyle: CoreStyle {
     /**
      * Defines which row in the grid the item should start and end at
      */
-    fun textAlign(): TextAlign {
-        return Style.DEFAULT.textAlign
-    }
+    fun textAlign(): TextAlign
 }

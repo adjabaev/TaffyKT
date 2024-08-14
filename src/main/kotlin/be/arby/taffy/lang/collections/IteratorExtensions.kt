@@ -11,6 +11,10 @@ fun <T> List<T>.cycle(): Sequence<T> = sequence {
     }
 }
 
+fun <T> Iterator<T>.nextRust(): Option<T> {
+    return if (this.hasNext()) Option.Some(this.next()) else Option.None
+}
+
 fun <T> List<T>.copied(): List<T> {
     return this.toList()
 }

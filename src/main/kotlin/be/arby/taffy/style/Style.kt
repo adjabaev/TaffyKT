@@ -1,6 +1,5 @@
 package be.arby.taffy.style
 
-import be.arby.taffy.compute.grid.types.GridLine
 import be.arby.taffy.geom.*
 import be.arby.taffy.lang.Default
 import be.arby.taffy.lang.Option
@@ -8,9 +7,13 @@ import be.arby.taffy.style.dimension.Dimension
 import be.arby.taffy.style.dimension.LengthPercentage
 import be.arby.taffy.style.dimension.LengthPercentageAuto
 import be.arby.taffy.style.alignment.*
+import be.arby.taffy.style.block.BlockContainerStyle
+import be.arby.taffy.style.block.BlockItemStyle
 import be.arby.taffy.style.block.TextAlign
 import be.arby.taffy.style.flex.FlexDirection
 import be.arby.taffy.style.flex.FlexWrap
+import be.arby.taffy.style.flex.FlexboxContainerStyle
+import be.arby.taffy.style.flex.FlexboxItemStyle
 import be.arby.taffy.style.grid.*
 
 /**
@@ -168,19 +171,19 @@ data class Style(
     /**
      * Defines the track sizing functions (heights) of the grid rows
      */
-    var gridTemplateRows: List<TrackSizingFunction>,
+    var gridTemplateRows: MutableList<TrackSizingFunction>,
     /**
      * Defines the track sizing functions (widths) of the grid columns
      */
-    var gridTemplateColumns: List<TrackSizingFunction>,
+    var gridTemplateColumns: MutableList<TrackSizingFunction>,
     /**
      * Defines the size of implicitly created rows
      */
-    var gridAutoRows: List<NonRepeatedTrackSizingFunction>,
+    var gridAutoRows: MutableList<NonRepeatedTrackSizingFunction>,
     /**
      * Defined the size of implicitly created columns
      */
-    var gridAutoColumns: List<NonRepeatedTrackSizingFunction>,
+    var gridAutoColumns: MutableList<NonRepeatedTrackSizingFunction>,
     /**
      * Controls how items get placed into the grid for auto-placed items
      */
@@ -195,22 +198,102 @@ data class Style(
      * Defines which column in the grid the item should start and end at
      */
     var gridColumn: Line<GridPlacement>
-): CoreStyle {
-    fun gridTemplateTracks(axis: AbsoluteAxis): List<TrackSizingFunction> {
+): CoreStyle, GridContainerStyle, GridItemStyle, BlockContainerStyle, BlockItemStyle, FlexboxContainerStyle, FlexboxItemStyle {
+    override fun justifyItems(): Option<AlignItems> {
+        return justifyItems
+    }
+
+    override fun gridRow(): Line<GridPlacement> {
+        return gridRow
+    }
+
+    override fun gridColumn(): Line<GridPlacement> {
+        return gridColumn
+    }
+
+    override fun flexWrap(): FlexWrap {
+        return flexWrap
+    }
+
+    override fun textAlign(): TextAlign {
+        return textAlign
+    }
+
+    override fun flexShrink(): Float {
+        return flexShrink
+    }
+
+    override fun flexDirection(): FlexDirection {
+        return flexDirection
+    }
+
+    override fun justifySelf(): Option<AlignSelf> {
+        return justifySelf
+    }
+
+    override fun flexBasis(): Dimension {
+        return flexBasis
+    }
+
+    override fun flexGrow(): Float {
+        return flexGrow
+    }
+
+    override fun gridTemplateTracks(axis: AbsoluteAxis): MutableList<TrackSizingFunction> {
         return when (axis) {
             AbsoluteAxis.HORIZONTAL -> gridTemplateColumns
             AbsoluteAxis.VERTICAL -> gridTemplateRows
         }
     }
 
-    fun gridPlacement(axis: AbsoluteAxis): Line<GridPlacement> {
+    override fun gridTemplateRows(): MutableList<TrackSizingFunction> {
+        return gridTemplateRows
+    }
+
+    override fun gridTemplateColumns(): MutableList<TrackSizingFunction> {
+        return gridTemplateColumns
+    }
+
+    override fun gridAutoRows(): MutableList<NonRepeatedTrackSizingFunction> {
+        return gridAutoRows
+    }
+
+    override fun gridAutoColumns(): MutableList<NonRepeatedTrackSizingFunction> {
+        return gridAutoColumns
+    }
+
+    override fun gap(): Size<LengthPercentage> {
+        return gap
+    }
+
+    override fun alignSelf(): Option<AlignSelf> {
+        return alignSelf
+    }
+
+    override fun alignContent(): Option<AlignContent> {
+        return alignContent
+    }
+
+    override fun justifyContent(): Option<JustifyContent> {
+        return justifyContent
+    }
+
+    override fun alignItems(): Option<AlignItems> {
+        return alignItems
+    }
+
+    override fun gridAutoFlow(): GridAutoFlow {
+        return gridAutoFlow
+    }
+
+    override fun gridPlacement(axis: AbsoluteAxis): Line<GridPlacement> {
         return when (axis) {
             AbsoluteAxis.HORIZONTAL -> gridColumn
             AbsoluteAxis.VERTICAL -> gridRow
         }
     }
 
-    fun gridAlignContent(axis: AbstractAxis): AlignContent {
+    override fun gridAlignContent(axis: AbstractAxis): AlignContent {
         return when (axis) {
             AbstractAxis.INLINE -> justifyContent.unwrapOr(AlignContent.STRETCH)
             AbstractAxis.BLOCK -> alignContent.unwrapOr(AlignContent.STRETCH)
@@ -276,6 +359,10 @@ data class Style(
         return border
     }
 
+    override fun isTable(): Boolean {
+        return itemIsTable
+    }
+
     companion object : Default<Style> {
         val DEFAULT = Style(
             display = Display.default(),
@@ -307,12 +394,12 @@ data class Style(
             flexWrap = FlexWrap.NO_WRAP,
             flexGrow = 0f,
             flexShrink = 1f,
-            flexBasis = Dimension.AUTO,
+            flexBasis = Dimension.Auto,
             /// Grid
-            gridTemplateRows = ArrayList(),
-            gridTemplateColumns = ArrayList(),
-            gridAutoRows = ArrayList(),
-            gridAutoColumns = ArrayList(),
+            gridTemplateRows = mutableListOf(),
+            gridTemplateColumns = mutableListOf(),
+            gridAutoRows = mutableListOf(),
+            gridAutoColumns = mutableListOf(),
             gridAutoFlow = GridAutoFlow.ROW,
             gridRow = Line(start = GenericGridPlacement.AUTO, end = GenericGridPlacement.AUTO),
             gridColumn = Line(start = GenericGridPlacement.AUTO, end = GenericGridPlacement.AUTO)

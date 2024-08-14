@@ -9,7 +9,5 @@ interface BlockItemStyle: CoreStyle {
     /**
      * Whether the item is a table. Table children are handled specially in block layout.
      */
-    fun isTable(): Boolean {
-        return false
-    }
+    fun isTable(): Boolean
 }

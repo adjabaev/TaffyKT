@@ -21,31 +21,23 @@ interface GridItemStyle: CoreStyle {
     /**
      * Defines which row in the grid the item should start and end at
      */
-    fun gridRow(): Line<GridPlacement> {
-        return Style.DEFAULT.gridRow
-    }
+    fun gridRow(): Line<GridPlacement>
     /**
      * Defines which column in the grid the item should start and end at
      */
-    fun gridColumn(): Line<GridPlacement> {
-        return Style.DEFAULT.gridColumn
-    }
+    fun gridColumn(): Line<GridPlacement>
 
     /**
      * How this node should be aligned in the cross/block axis
      * Falls back to the parents [`AlignItems`] if not set
      */
-    fun alignSelf(): Option<AlignSelf> {
-        return Style.DEFAULT.alignSelf
-    }
+    fun alignSelf(): Option<AlignSelf>
 
     /**
      * How this node should be aligned in the inline axis
      * Falls back to the parents [`super::JustifyItems`] if not set
      */
-    fun justifySelf(): Option<AlignSelf> {
-        return Style.DEFAULT.justifySelf
-    }
+    fun justifySelf(): Option<AlignSelf>
 
     /**
      * Get a grid item's row or column placement depending on the axis passed

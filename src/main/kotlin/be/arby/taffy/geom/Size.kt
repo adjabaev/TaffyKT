@@ -275,6 +275,10 @@ data class Size<T>(
         fun fromPercent(width: Float, height: Float): Size<Dimension> {
             return Size(width = Dimension.Percent(width), height = Dimension.Percent(height))
         }
+
+        fun <T> fromOne(value: T): Size<T> {
+            return Size(width = value, height = value)
+        }
     }
 }
 
