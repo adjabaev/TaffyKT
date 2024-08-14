@@ -1,5 +1,6 @@
 package be.arby.taffy.compute.grid.util
 
+import be.arby.taffy.compute.grid.types.OriginZeroLine
 import be.arby.taffy.fr
 import be.arby.taffy.geom.Line
 import be.arby.taffy.geom.Size
@@ -15,6 +16,15 @@ fun T4<Float, Float, Int, Int>.intoGrid(): Style {
         size = Size(width = Dimension.Length(first), height = Dimension.Length(second)),
         gridTemplateColumns = MutableList(third) { fr(1f) },
         gridTemplateRows = MutableList(fourth) { fr(1f) }
+    )
+}
+
+fun T4<Int, Int, Int, Int>.intoOz(): T4<OriginZeroLine, OriginZeroLine, OriginZeroLine, OriginZeroLine> {
+    return T4(
+        OriginZeroLine(first),
+        OriginZeroLine(second),
+        OriginZeroLine(third),
+        OriginZeroLine(fourth)
     )
 }
 

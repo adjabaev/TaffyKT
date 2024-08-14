@@ -10,4 +10,11 @@ sealed class Result<T> {
             throw exception
         }
     }
+
+    fun unwrap(): T {
+        return when (this) {
+            is Ok -> value
+            is Err -> throw exception
+        }
+    }
 }

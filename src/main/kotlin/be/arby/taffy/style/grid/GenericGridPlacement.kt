@@ -4,8 +4,6 @@ import be.arby.taffy.compute.grid.types.GridCoordinate
 import be.arby.taffy.compute.grid.types.GridLine
 import be.arby.taffy.compute.grid.types.OriginZeroLine
 import be.arby.taffy.lang.Default
-import be.arby.taffy.style.helpers.TaffyGridLine
-import be.arby.taffy.style.helpers.TaffyGridSpan
 
 /**
  * A grid line placement using the normalized OriginZero coordinates to specify line positions.
@@ -30,11 +28,15 @@ typealias GridPlacement = GenericGridPlacement<GridLine>
  *
  * See [`crate::compute::grid::type::coordinates`] for documentation on the different coordinate systems.
  */
-sealed class GenericGridPlacement<LineType : GridCoordinate> : TaffyGridLine, TaffyGridSpan {
+sealed class GenericGridPlacement<LineType : GridCoordinate> {
     /**
      * Place item according to the auto-placement algorithm, and the parent's grid_auto_flow property
      */
-    class Auto<LineType : GridCoordinate> : GenericGridPlacement<LineType>()
+    class Auto<LineType : GridCoordinate> : GenericGridPlacement<LineType>() {
+        override fun equals(other: Any?): Boolean {
+            return other is Auto<*>
+        }
+    }
 
     /**
      * Place item at specified line (column or row) index

@@ -5,6 +5,7 @@ import be.arby.taffy.geom.Line
 import be.arby.taffy.lang.Option
 import be.arby.taffy.lang.collections.rposition
 import be.arby.taffy.lang.grid.Grid
+import be.arby.taffy.lang.tuples.T2
 import kotlin.math.max
 import kotlin.math.min
 
@@ -26,10 +27,10 @@ data class CellOccupancyMatrix(
         primaryRange: IntRange,
         secondaryRange: IntRange
     ): Boolean {
-        if (primaryRange.start < 0 || primaryRange.endInclusive + 1 > trackCounts(primaryAxis).len()) {
+        if (primaryRange.first < 0 || (primaryRange.last + 1) > trackCounts(primaryAxis).len()) {
             return false
         }
-        if (secondaryRange.start < 0 || secondaryRange.endInclusive + 1 > trackCounts(primaryAxis.otherAxis()).len()) {
+        if (secondaryRange.first < 0 || (secondaryRange.last + 1) > trackCounts(primaryAxis.otherAxis()).len()) {
             return false
         }
         return true
@@ -44,10 +45,10 @@ data class CellOccupancyMatrix(
         colRange: IntRange
     ) {
         // Calculate number of rows and columns missing to accommodate ranges (if any)
-        val reqNegativeRows = min(rowRange.start, 0)
-        val reqPositiveRows = max(rowRange.endExclusive - rows.len(), 0)
-        val reqNegativeCols = min(colRange.start, 0)
-        val reqPositiveCols = max(colRange.endExclusive - columns.len(), 0)
+        val reqNegativeRows = min(rowRange.first, 0)
+        val reqPositiveRows = max((rowRange.last + 1) - rows.len(), 0)
+        val reqNegativeCols = min(colRange.first, 0)
+        val reqPositiveCols = max((colRange.last + 1) - columns.len(), 0)
 
         val oldRowCount = rows.len()
         val oldColCount = columns.len()
@@ -82,7 +83,7 @@ data class CellOccupancyMatrix(
         }
 
         // Update self with new data
-        inner = Grid.fromList(data, newColCount);
+        inner = Grid.fromList(data, newColCount)
         rows.negativeImplicit += reqNegativeRows
         rows.positiveImplicit += reqPositiveRows
         columns.negativeImplicit += reqNegativeCols
@@ -99,8 +100,8 @@ data class CellOccupancyMatrix(
         value: CellOccupancyState
     ) {
         val (rowSpan, columnSpan) = when (primaryAxis) {
-            AbsoluteAxis.HORIZONTAL -> Pair(secondarySpan, primarySpan)
-            AbsoluteAxis.VERTICAL -> Pair(primarySpan, secondarySpan)
+            AbsoluteAxis.HORIZONTAL -> T2(secondarySpan, primarySpan)
+            AbsoluteAxis.VERTICAL -> T2(primarySpan, secondarySpan)
         }
 
         var colRange = columns.ozLineRangeToTrackRange(columnSpan)
@@ -146,8 +147,8 @@ data class CellOccupancyMatrix(
         secondaryRange: IntRange
     ): Boolean {
         val (rowRange, colRange) = when (primaryAxis) {
-            AbsoluteAxis.HORIZONTAL -> Pair(secondaryRange, primaryRange)
-            AbsoluteAxis.VERTICAL -> Pair(primaryRange, secondaryRange)
+            AbsoluteAxis.HORIZONTAL -> T2(secondaryRange, primaryRange)
+            AbsoluteAxis.VERTICAL -> T2(primaryRange, secondaryRange)
         }
 
         // Search for occupied cells in the specified area. Out of bounds cells are considered unoccupied.
@@ -225,7 +226,7 @@ data class CellOccupancyMatrix(
          * the provisional track counts represent a best effort attempt to avoid the extra allocations this requires.
          */
         fun withTrackCounts(columns: TrackCounts, rows: TrackCounts): CellOccupancyMatrix {
-            return CellOccupancyMatrix(inner = Grid.new(rows.len(), columns.len()), rows, columns)
+            return CellOccupancyMatrix(inner = Grid.new(rows.len(), columns.len(), CellOccupancyState.UNOCCUPIED), rows = rows, columns = columns)
         }
     }
 }

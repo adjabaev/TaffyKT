@@ -1,6 +1,7 @@
 package be.arby.taffy.geom
 
 import be.arby.taffy.lang.Option
+import be.arby.taffy.style.dimension.Dimension
 import be.arby.taffy.style.dimension.LengthPercentage
 import be.arby.taffy.style.dimension.LengthPercentageAuto
 import be.arby.taffy.style.flex.FlexDirection
@@ -125,10 +126,80 @@ data class Rect<T>(
     }
 
     companion object {
+        val AUTO = Rect(left = Dimension.AUTO, right = Dimension.AUTO, top = Dimension.AUTO, bottom = Dimension.AUTO)
         val ZERO = Rect(left = 0f, right = 0f, top = 0f, bottom = 0f)
 
         fun new(start: Float, end: Float, top: Float, bottom: Float): Rect<Float> {
             return Rect(left = start, right = end, top = top, bottom = bottom)
+        }
+
+        inline fun <reified T> auto(): Rect<T> {
+            if (T::class == Dimension::class) {
+                return Rect(left = Dimension.Auto, right = Dimension.Auto, top = Dimension.Auto, bottom = Dimension.Auto) as Rect<T>
+            } else {
+                throw IllegalArgumentException("Unsupported type: ${T::class}")
+            }
+        }
+
+        fun fromLength(start: Float, end: Float, top: Float, bottom: Float): Rect<Dimension> {
+            return Rect(
+                left = Dimension.Length(start),
+                right = Dimension.Length(end),
+                top = Dimension.Length(top),
+                bottom = Dimension.Length(bottom)
+            )
+        }
+
+        fun fromPercent(start: Float, end: Float, top: Float, bottom: Float): Rect<Dimension> {
+            return Rect(
+                left = Dimension.Percent(start),
+                right = Dimension.Percent(end),
+                top = Dimension.Percent(top),
+                bottom = Dimension.Percent(bottom)
+            )
+        }
+
+        inline fun <reified T> zero(): Rect<T> {
+            if (T::class == Float::class) {
+                return Rect(
+                    left = 0f,
+                    right = 0f,
+                    top = 0f,
+                    bottom = 0f
+                ) as Rect<T>
+            } else if (T::class == Option::class) {
+                return Rect(
+                    left = Option.Some(0f),
+                    right = Option.Some(0f),
+                    top = Option.Some(0f),
+                    bottom = Option.Some(0f)
+                ) as Rect<T>
+            } else if (T::class == LengthPercentage::class) {
+                return Rect(
+                    left = LengthPercentage.Length(0f),
+                    right = LengthPercentage.Length(0f),
+                    top = LengthPercentage.Length(0f),
+                    bottom = LengthPercentage.Length(0f)
+                ) as Rect<T>
+            } else if (T::class == LengthPercentageAuto::class) {
+                return Rect(
+                    left = LengthPercentageAuto.Length(0f),
+                    right = LengthPercentageAuto.Length(0f),
+                    top = LengthPercentageAuto.Length(0f),
+                    bottom = LengthPercentageAuto.Length(0f)
+                ) as Rect<T>
+            } else {
+                throw IllegalArgumentException("Unsupported type: ${T::class}")
+            }
+        }
+
+        fun zeroOF(): Rect<Option<Float>> {
+            return Rect(
+                left = Option.Some(0f),
+                right = Option.Some(0f),
+                top = Option.Some(0f),
+                bottom = Option.Some(0f)
+            )
         }
 
         fun autoLPA(): Rect<LengthPercentageAuto> {
@@ -158,6 +229,28 @@ data class Rect<T>(
             )
         }
     }
+}
+
+/// DIMENSION VARIANTS
+
+@JvmName("resolveOrZeroOF")
+fun Rect<Dimension>.resolveOrZero(context: Option<Float>): Rect<Float> {
+    return Rect(
+        left = left.resolveOrZero(context),
+        right = right.resolveOrZero(context),
+        top = top.resolveOrZero(context),
+        bottom = bottom.resolveOrZero(context)
+    )
+}
+
+@JvmName("resolveOrZeroSOF")
+fun Rect<Dimension>.resolveOrZero(context: Size<Option<Float>>): Rect<Float> {
+    return Rect(
+        left = left.resolveOrZero(context.width),
+        right = right.resolveOrZero(context.width),
+        top = top.resolveOrZero(context.height),
+        bottom = bottom.resolveOrZero(context.height)
+    )
 }
 
 /// FLOAT VARIANTS
