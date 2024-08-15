@@ -12,14 +12,13 @@ import be.arby.taffy.style.alignment.AlignItems
 import be.arby.taffy.style.grid.GridAutoFlow
 import be.arby.taffy.style.grid.GridItemStyle
 import be.arby.taffy.style.grid.OriginZeroGridPlacement
-import be.arby.taffy.tree.NodeId
 
 /**
  * 8.5. Grid Item Placement Algorithm
  * Place items into the grid, generating new rows/column into the implicit grid as required
  * [Specification](https://www.w3.org/TR/css-grid-2/#auto-placement-algo)
  */
-fun <S: GridItemStyle, ChildIter: List<T3<Int, NodeId, S>>> placeGridItems(
+fun <S: GridItemStyle, ChildIter: List<T3<Int, Int, S>>> placeGridItems(
     cellOccupancyMatrix: CellOccupancyMatrix,
     items: MutableList<GridItem>,
     childrenIter: () -> ChildIter,
@@ -30,7 +29,7 @@ fun <S: GridItemStyle, ChildIter: List<T3<Int, NodeId, S>>> placeGridItems(
     var primaryAxis = gridAutoFlow.primaryAxis()
     var secondaryAxis = primaryAxis.otherAxis()
 
-    val mapChildStyleToOriginZeroPlacement: (Int, NodeId, S) -> T4<Int, NodeId, InBothAbsAxis<Line<OriginZeroGridPlacement>>, S> = { index, node, style ->
+    val mapChildStyleToOriginZeroPlacement: (Int, Int, S) -> T4<Int, Int, InBothAbsAxis<Line<OriginZeroGridPlacement>>, S> = { index, node, style ->
         val explicitColCount = cellOccupancyMatrix.trackCounts(AbsoluteAxis.HORIZONTAL).explicit
         val explicitRowCount = cellOccupancyMatrix.trackCounts(AbsoluteAxis.VERTICAL).explicit
 
@@ -303,7 +302,7 @@ gridPosition: T2<OriginZeroLine, OriginZeroLine>,
 fun <S: GridItemStyle> recordGridPlacement(
     cellOccupancyMatrix: CellOccupancyMatrix,
     items: MutableList<GridItem>,
-    node: NodeId,
+    node: Int,
     index: Int,
     style: S,
     parentAlignItems: AlignItems,

@@ -5,7 +5,6 @@ import be.arby.taffy.lang.Option
 import be.arby.taffy.style.BoxSizing
 import be.arby.taffy.style.Overflow
 import be.arby.taffy.style.dimension.AvailableSpace
-import be.arby.taffy.tree.NodeId
 import be.arby.taffy.tree.layout.Layout
 import be.arby.taffy.tree.layout.LayoutInput
 import be.arby.taffy.tree.layout.LayoutOutput
@@ -21,7 +20,7 @@ import kotlin.math.round
 /**
  * Compute layout for the root node in the tree
  */
-fun computeRootLayout(tree: LayoutPartialTree, root: NodeId, availableSpace: Size<AvailableSpace>) {
+fun computeRootLayout(tree: LayoutPartialTree, root: Int, availableSpace: Size<AvailableSpace>) {
     var knownDimensions = Size.NONE
 
     val parentSize = availableSpace.intoOptions()
@@ -114,9 +113,9 @@ fun computeRootLayout(tree: LayoutPartialTree, root: NodeId, availableSpace: Siz
 
 fun <Tree : LayoutPartialTree> computeCachedLayout(
     tree: Tree,
-    node: NodeId,
+    node: Int,
     inputs: LayoutInput,
-    computeUncached: (Tree, NodeId, LayoutInput) -> LayoutOutput
+    computeUncached: (Tree, Int, LayoutInput) -> LayoutOutput
 ): LayoutOutput {
     val knownDimensions = inputs.knownDimensions
     val availableSpace = inputs.availableSpace
@@ -136,16 +135,16 @@ fun <Tree : LayoutPartialTree> computeCachedLayout(
     return computedSizeAndBaselines
 }
 
-fun roundLayout(tree: RoundTree, nodeId: NodeId) {
+fun roundLayout(tree: RoundTree, nodeId: Int) {
     return roundLayoutInner(tree, nodeId, 0f, 0f)
 }
 
 /**
  * Recursive function to apply rounding to all descendents
  */
-private fun roundLayoutInner(tree: RoundTree, nodeId: NodeId, cumulativeX: Float, cumulativeY: Float) {
+private fun roundLayoutInner(tree: RoundTree, nodeId: Int, cumulativeX: Float, cumulativeY: Float) {
     val unroundedLayout = tree.getUnroundedLayout(nodeId)
-    var layout = unroundedLayout
+    val layout = unroundedLayout
 
     val cumulativeX = cumulativeX + unroundedLayout.location.x;
     val cumulativeY = cumulativeY + unroundedLayout.location.y;
@@ -194,7 +193,7 @@ private fun roundContentSize(
 
 fun computeHiddenLayout(
     tree: LayoutPartialTree,
-    node: NodeId
+    node: Int
 ): LayoutOutput {
     // Clear cache and set zeroed-out layout for the node
     tree.getCache(node).clear()

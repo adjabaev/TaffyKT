@@ -7,7 +7,6 @@ import be.arby.taffy.lang.Option
 import be.arby.taffy.style.Overflow
 import be.arby.taffy.style.Position
 import be.arby.taffy.style.dimension.LengthPercentageAuto
-import be.arby.taffy.tree.NodeId
 
 /**
  * Per-child data that is accumulated and modified over the course of the layout algorithm
@@ -16,7 +15,7 @@ data class BlockItem(
     /**
      * The identifier for the associated node
      */
-    val nodeId: NodeId,
+    val nodeId: Int,
 
     /**
      * The "source order" of the item. This is the index of the item within the children iterator,

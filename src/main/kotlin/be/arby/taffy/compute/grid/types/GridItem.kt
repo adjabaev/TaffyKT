@@ -15,7 +15,6 @@ import be.arby.taffy.style.dimension.LengthPercentage
 import be.arby.taffy.style.dimension.LengthPercentageAuto
 import be.arby.taffy.style.grid.GridItemStyle
 import be.arby.taffy.style.grid.MinTrackSizingFunction
-import be.arby.taffy.tree.NodeId
 import be.arby.taffy.tree.layout.SizingMode
 import be.arby.taffy.tree.traits.LayoutPartialTree
 import be.arby.taffy.util.maybeAdd
@@ -30,7 +29,7 @@ data class GridItem(
     /**
      * The id of the node that this item represents
      */
-    val node: NodeId,
+    val node: Int,
 
     /**
      * The order of the item in the children array
@@ -582,7 +581,7 @@ data class GridItem(
          * Create a new item given a concrete placement in both axes
          */
         fun <S : GridItemStyle> newWithPlacementStyleAndOrder(
-            node: NodeId,
+            node: Int,
             colSpan: Line<OriginZeroLine>,
             rowSpan: Line<OriginZeroLine>,
             style: S,

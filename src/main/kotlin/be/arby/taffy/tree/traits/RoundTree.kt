@@ -1,6 +1,5 @@
 package be.arby.taffy.tree.traits
 
-import be.arby.taffy.tree.NodeId
 import be.arby.taffy.tree.layout.Layout
 
 /**
@@ -13,10 +12,10 @@ interface RoundTree : TraverseTree {
     /**
      * Get the node's unrounded layout
      */
-    fun getUnroundedLayout(nodeId: NodeId):Layout
+    fun getUnroundedLayout(nodeId: Int):Layout
 
     /**
      * Get a reference to the node's final layout
      */
-    fun setFinalLayout(nodeId: NodeId, layout: Layout)
+    fun setFinalLayout(nodeId: Int, layout: Layout)
 }

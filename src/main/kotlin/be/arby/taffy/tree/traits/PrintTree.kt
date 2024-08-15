@@ -1,6 +1,5 @@
 package be.arby.taffy.tree.traits
 
-import be.arby.taffy.tree.NodeId
 import be.arby.taffy.tree.layout.Layout
 
 /**
@@ -12,10 +11,10 @@ interface PrintTree : TraverseTree {
     /**
      * Get a debug label for the node (typically the type of node: flexbox, grid, text, image, etc)
      */
-    fun getUnroundedLayout(nodeId: NodeId):Layout
+    fun getUnroundedLayout(nodeId: Int):Layout
 
     /**
      * Get a reference to the node's final layout
      */
-    fun setFinalLayout(nodeId: NodeId): Layout
+    fun setFinalLayout(nodeId: Int): Layout
 }

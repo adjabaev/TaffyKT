@@ -20,7 +20,6 @@ import be.arby.taffy.style.alignment.AlignItems
 import be.arby.taffy.style.alignment.AlignSelf
 import be.arby.taffy.style.alignment.JustifyContent
 import be.arby.taffy.style.dimension.AvailableSpace
-import be.arby.taffy.tree.NodeId
 import be.arby.taffy.tree.layout.*
 import be.arby.taffy.tree.traits.LayoutGridContainer
 import be.arby.taffy.util.maybeAdd
@@ -36,7 +35,7 @@ import be.arby.taffy.util.maybeSub
  *   - Track (row/column) sizing
  *   - Alignment & Final item placement
  */
-fun computeGridLayout(tree: LayoutGridContainer, node: NodeId, inputs: LayoutInput): LayoutOutput {
+fun computeGridLayout(tree: LayoutGridContainer, node: Int, inputs: LayoutInput): LayoutOutput {
     val knownDimensions = inputs.knownDimensions
     val parentSize = inputs.parentSize
     val availableSpace = inputs.availableSpace
@@ -127,8 +126,8 @@ fun computeGridLayout(tree: LayoutGridContainer, node: NodeId, inputs: LayoutInp
         return LayoutOutput.fromOuterSize(Size(outerNodeSize.width.unwrap(), outerNodeSize.height.unwrap()))
     }
 
-    val getChildStylesIter = { node: NodeId ->
-        tree.childIds(node).map { childNode: NodeId ->
+    val getChildStylesIter = { node: Int ->
+        tree.childIds(node).map { childNode: Int ->
             tree.getGridChildStyle(childNode)
         }
     }

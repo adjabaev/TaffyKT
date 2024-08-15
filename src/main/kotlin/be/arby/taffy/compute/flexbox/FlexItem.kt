@@ -6,7 +6,6 @@ import be.arby.taffy.geom.Size
 import be.arby.taffy.lang.Option
 import be.arby.taffy.style.Overflow
 import be.arby.taffy.style.alignment.AlignSelf
-import be.arby.taffy.tree.NodeId
 
 /**
  * The intermediate results of a flexbox calculation for a single item
@@ -15,7 +14,7 @@ data class FlexItem (
     /**
      * The identifier for the associated node
      */
-    var node: NodeId,
+    var node: Int,
 
     /**
      * The order of the node relative to it's siblings

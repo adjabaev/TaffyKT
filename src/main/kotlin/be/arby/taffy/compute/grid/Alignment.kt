@@ -19,7 +19,6 @@ import be.arby.taffy.style.alignment.AlignContent
 import be.arby.taffy.style.alignment.AlignItems
 import be.arby.taffy.style.alignment.AlignSelf
 import be.arby.taffy.style.dimension.AvailableSpace
-import be.arby.taffy.tree.NodeId
 import be.arby.taffy.tree.layout.Layout
 import be.arby.taffy.tree.layout.SizingMode
 import be.arby.taffy.tree.traits.LayoutGridContainer
@@ -74,7 +73,7 @@ fun alignTracks(
 /// Align and size a grid item into it's final position
 fun alignAndPositionItem(
     tree: LayoutGridContainer,
-    node: NodeId,
+    node: Int,
     order: Int,
     gridArea: Rect<Float>,
     containerAlignmentStyles: InBothAbsAxis<Option<AlignItems>>,

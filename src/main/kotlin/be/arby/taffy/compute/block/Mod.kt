@@ -13,7 +13,6 @@ import be.arby.taffy.style.Overflow
 import be.arby.taffy.style.Position
 import be.arby.taffy.style.block.TextAlign
 import be.arby.taffy.style.dimension.AvailableSpace
-import be.arby.taffy.tree.NodeId
 import be.arby.taffy.tree.layout.*
 import be.arby.taffy.tree.traits.LayoutBlockContainer
 import be.arby.taffy.tree.traits.LayoutPartialTree
@@ -21,7 +20,7 @@ import be.arby.taffy.util.*
 
 fun computeBlockLayout(
     tree: LayoutBlockContainer,
-    nodeId: NodeId,
+    nodeId: Int,
     inputs: LayoutInput,
 ): LayoutOutput {
     val knownDimensions = inputs.knownDimensions
@@ -83,7 +82,7 @@ fun computeBlockLayout(
 /**
  * Computes the layout of [LayoutBlockContainer] according to the block layout algorithm
  */
-fun computeInner(tree: LayoutBlockContainer, nodeId: NodeId, inputs: LayoutInput): LayoutOutput {
+fun computeInner(tree: LayoutBlockContainer, nodeId: Int, inputs: LayoutInput): LayoutOutput {
     val knownDimensions = inputs.knownDimensions
     val parentSize = inputs.parentSize
     val availableSpace = inputs.availableSpace
@@ -157,7 +156,7 @@ fun computeInner(tree: LayoutBlockContainer, nodeId: NodeId, inputs: LayoutInput
     val textAlign = style.textAlign()
 
     // 1. Generate items
-    var items = generateItemList(tree, nodeId, containerContentBoxSize)
+    val items = generateItemList(tree, nodeId, containerContentBoxSize)
 
     // 2. Compute container width
     val containerOuterWidth = knownDimensions.width.unwrapOrElse {
@@ -254,7 +253,7 @@ fun computeInner(tree: LayoutBlockContainer, nodeId: NodeId, inputs: LayoutInput
  */
 fun generateItemList(
     tree: LayoutBlockContainer,
-    node: NodeId,
+    node: Int,
     nodeInnerSize: Size<Option<Float>>,
 ): List<BlockItem> {
     return tree.childIds(node)

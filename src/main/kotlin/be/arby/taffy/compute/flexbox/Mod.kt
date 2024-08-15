@@ -22,7 +22,6 @@ import be.arby.taffy.style.dimension.LengthPercentageAuto
 import be.arby.taffy.style.flex.FlexDirection
 import be.arby.taffy.style.flex.FlexWrap
 import be.arby.taffy.style.flex.FlexboxContainerStyle
-import be.arby.taffy.tree.NodeId
 import be.arby.taffy.tree.layout.*
 import be.arby.taffy.tree.traits.LayoutFlexboxContainer
 import be.arby.taffy.util.*
@@ -32,7 +31,7 @@ import be.arby.taffy.util.*
  */
 fun computeFlexboxLayout(
     tree: LayoutFlexboxContainer,
-    node: NodeId,
+    node: Int,
     inputs: LayoutInput
 ): LayoutOutput {
     val knownDimensions = inputs.knownDimensions
@@ -115,7 +114,7 @@ fun computeFlexboxLayout(
 /**
  * Compute a preliminary size for an item
  */
-fun computePreliminary(tree: LayoutFlexboxContainer, node: NodeId, inputs: LayoutInput): LayoutOutput {
+fun computePreliminary(tree: LayoutFlexboxContainer, node: Int, inputs: LayoutInput): LayoutOutput {
     val knownDimensions = inputs.knownDimensions
     val parentSize = inputs.parentSize
     var availableSpace = inputs.availableSpace
@@ -363,7 +362,7 @@ fun computeConstants(
  */
 fun generateAnonymousFlexItems(
     tree: LayoutFlexboxContainer,
-    node: NodeId,
+    node: Int,
     constants: AlgoConstants
 ): List<FlexItem> {
     return tree.childIds(node)
@@ -1717,7 +1716,7 @@ fun finalLayoutPass(
  */
 fun performAbsoluteLayoutOnAbsoluteChildren(
     tree: LayoutFlexboxContainer,
-    node: NodeId,
+    node: Int,
     constants: AlgoConstants
 ): Size<Float> {
     val containerWidth = constants.containerSize.width
