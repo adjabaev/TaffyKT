@@ -41,7 +41,12 @@ fun alignTracks(
     val origin = padding.start + border.start
 
     // Count the number of non-collapsed tracks (not counting gutters)
-    val numTracks = tracks.skip(1).stepBy(2).filter { track -> !track.isCollapsed }.count()
+    val numTracks = tracks
+        .asSequence()
+        .drop(1)
+        .filterIndexed { index, _ -> index % 2 == 0 }
+        .filter { track -> !track.isCollapsed }
+        .count()
 
     // Grid layout treats gaps as full tracks rather than applying them at alignment so we
     // simply pass zero here. Grid layout is never reversed.
@@ -98,7 +103,7 @@ fun alignAndPositionItem(
     val paddingBorderSize = (padding + border).sumAxes()
 
     val boxSizingAdjustment =
-        if (style.boxSizing() == BoxSizing.CONTENT_BOX) paddingBorderSize else Size.ZERO
+        if (style.boxSizing() == BoxSizing.CONTENT_BOX) paddingBorderSize else Size.ZERO.clone()
 
     val inherentSize = style
         .size()

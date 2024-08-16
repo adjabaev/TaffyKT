@@ -47,11 +47,11 @@ data class LayoutOutput(
          * An all-zero `LayoutOutput` for hidden nodes
          */
         val HIDDEN = LayoutOutput(
-            size = Size.ZERO,
-            contentSize = Size.ZERO,
+            size = Size.ZERO.clone(),
+            contentSize = Size.ZERO.clone(),
             firstBaselines = Point.NONE,
-            topMargin = CollapsibleMarginSet.ZERO,
-            bottomMargin = CollapsibleMarginSet.ZERO,
+            topMargin = CollapsibleMarginSet.ZERO.clone(),
+            bottomMargin = CollapsibleMarginSet.ZERO.clone(),
             marginsCanCollapseThrough = false
         )
 
@@ -72,8 +72,8 @@ data class LayoutOutput(
                 size,
                 contentSize,
                 firstBaselines,
-                topMargin = CollapsibleMarginSet.ZERO,
-                bottomMargin = CollapsibleMarginSet.ZERO,
+                topMargin = CollapsibleMarginSet.ZERO.clone(),
+                bottomMargin = CollapsibleMarginSet.ZERO.clone(),
                 marginsCanCollapseThrough = false
             )
         }
@@ -89,7 +89,7 @@ data class LayoutOutput(
          * Construct a SizeBaselinesAndMargins from just the container's size.
          */
         fun fromOuterSize(size: Size<Float>): LayoutOutput {
-            return fromSizes(size, Size.ZERO)
+            return fromSizes(size, Size.ZERO.clone())
         }
     }
 }

@@ -9,6 +9,7 @@ import be.arby.taffy.geom.Size
 import be.arby.taffy.geom.span
 import be.arby.taffy.lang.*
 import be.arby.taffy.lang.collections.*
+import be.arby.taffy.lang.tuples.T2
 import be.arby.taffy.style.alignment.AlignContent
 import be.arby.taffy.style.alignment.AlignSelf
 import be.arby.taffy.style.dimension.AvailableSpace
@@ -342,7 +343,7 @@ fun resolveItemBaselines(
         for (item in rowItems) {
             val measuredSizeAndBaselines = tree.performChildLayout(
                 item.node,
-                Size.NONE,
+                Size.NONE.clone(),
                 innerNodeSize,
                 Size.MIN_CONTENT,
                 SizingMode.INHERENT_SIZE,
@@ -412,9 +413,15 @@ fun resolveIntrinsicTrackSizes(
             getTrackSizeEstimate = getTrackSizeEstimate
         )
 
-    var batchedItemIterator = ItemBatcher.new(axis)
-    while (batchedItemIterator.next(items).isSome()) {
-        val (batch, isFlex) = batchedItemIterator.next(items).unwrap()
+    val batchedItemIterator = ItemBatcher.new(axis)
+    var next: Option<T2<List<GridItem>, Boolean>>
+    while (true) {
+        next = batchedItemIterator.next(items)
+        if (next.isNone()) {
+            break
+        }
+
+        val (batch, isFlex) = next.unwrap()
 
         // 2. Size tracks to fit non-spanning items: For each track with an intrinsic track sizing function and not a flexible sizing function,
         // consider the items in it with a span of 1:
@@ -1079,7 +1086,7 @@ fun expandFlexibleTracks(
                         val tracks = axisTracks.slice(item.trackRangeExcludingLines(axis))
                         // TODO: plumb estimate of other axis size (known_dimensions) in here rather than just passing Size::NONE?
                         val maxContentContribution =
-                            item.maxContentContributionCached(axis, tree, Size.NONE, innerNodeSize)
+                            item.maxContentContributionCached(axis, tree, Size.NONE.clone(), innerNodeSize)
                         findSizeOfFr(tracks, maxContentContribution)
                     }
                     .maxByRust { a, b -> a.compareTo(b) }

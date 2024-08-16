@@ -51,7 +51,7 @@ fun computeGridLayout(tree: LayoutGridContainer, node: Int, inputs: LayoutInput)
     val paddingBorder = padding + border
     val paddingBorderSize = paddingBorder.sumAxes()
     val boxSizingAdjustment =
-    if (style.boxSizing() == BoxSizing.CONTENT_BOX) paddingBorderSize else Size.ZERO
+    if (style.boxSizing() == BoxSizing.CONTENT_BOX) paddingBorderSize else Size.ZERO.clone()
 
     val minSize = style
             .minSize()
@@ -70,7 +70,7 @@ fun computeGridLayout(tree: LayoutGridContainer, node: Int, inputs: LayoutInput)
             .maybeApplyAspectRatio(style.aspectRatio())
             .maybeAdd(boxSizingAdjustment)
     } else {
-        Size.NONE
+        Size.NONE.clone()
     }
 
     // Scrollbar gutters are reserved when the `overflow` property is set to `Overflow.Scroll`.
@@ -455,7 +455,7 @@ fun computeGridLayout(tree: LayoutGridContainer, node: Int, inputs: LayoutInput)
 
     // 9. Size, Align, and Position Grid Items
 
-    var itemContentSizeContribution = Size.ZERO
+    var itemContentSizeContribution = Size.ZERO.clone()
 
     // Sort items back into original order to allow them to be matched up with styles
     items.sortByKey { item -> item.sourceOrder }
@@ -495,8 +495,8 @@ fun computeGridLayout(tree: LayoutGridContainer, node: Int, inputs: LayoutInput)
             tree.setUnroundedLayout(child, Layout.withOrder(order))
             tree.performChildLayout(
                 child,
-                Size.NONE,
-                Size.NONE,
+                Size.NONE.clone(),
+                Size.NONE.clone(),
                 Size.MAX_CONTENT,
                 SizingMode.INHERENT_SIZE,
                 Line.FALSE,

@@ -11,10 +11,10 @@ interface PrintTree : TraverseTree {
     /**
      * Get a debug label for the node (typically the type of node: flexbox, grid, text, image, etc)
      */
-    fun getUnroundedLayout(nodeId: Int):Layout
+    fun getDebugLabel(nodeId: Int): String
 
     /**
      * Get a reference to the node's final layout
      */
-    fun setFinalLayout(nodeId: Int): Layout
+    fun getFinalLayout(nodeId: Int): Layout
 }

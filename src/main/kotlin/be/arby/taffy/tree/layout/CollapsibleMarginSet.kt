@@ -15,7 +15,10 @@ data class CollapsibleMarginSet(
      * The smallest negative margin (with largest absolute value)
      */
     var negative: Float
-) {
+): Cloneable {
+    public override fun clone(): CollapsibleMarginSet {
+        return CollapsibleMarginSet(positive = positive, negative = negative)
+    }
 
     /**
      * Collapse a single margin with this set

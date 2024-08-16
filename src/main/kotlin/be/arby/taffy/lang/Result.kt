@@ -17,4 +17,8 @@ sealed class Result<T> {
             is Err -> throw exception
         }
     }
+
+    fun isOk(): Boolean {
+        return this is Ok
+    }
 }

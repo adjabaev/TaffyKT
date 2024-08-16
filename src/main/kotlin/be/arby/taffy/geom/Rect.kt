@@ -36,7 +36,11 @@ data class Rect<T>(
      * or the amount of padding on the bottom side.
      */
     var bottom: T
-) {
+): Cloneable {
+    public override fun clone(): Rect<T> {
+        return Rect(left = left, right = right, top = top, bottom = bottom)
+    }
+
     /**
      * Applies the function `f` to all four sides of the rect
      *
@@ -136,6 +140,10 @@ data class Rect<T>(
         inline fun <reified T> auto(): Rect<T> {
             if (T::class == Dimension::class) {
                 return Rect(left = Dimension.Auto, right = Dimension.Auto, top = Dimension.Auto, bottom = Dimension.Auto) as Rect<T>
+            } else if (T::class == LengthPercentageAuto::class) {
+                return Rect(left = LengthPercentageAuto.Auto, right = LengthPercentageAuto.Auto, top = LengthPercentageAuto.Auto, bottom = LengthPercentageAuto.Auto) as Rect<T>
+            } else if (T::class == Dimension::class) {
+                return Rect(left = Dimension.Auto, right = Dimension.Auto, top = Dimension.Auto, bottom = Dimension.Auto) as Rect<T>
             } else {
                 throw IllegalArgumentException("Unsupported type: ${T::class}")
             }
@@ -191,42 +199,6 @@ data class Rect<T>(
             } else {
                 throw IllegalArgumentException("Unsupported type: ${T::class}")
             }
-        }
-
-        fun zeroOF(): Rect<Option<Float>> {
-            return Rect(
-                left = Option.Some(0f),
-                right = Option.Some(0f),
-                top = Option.Some(0f),
-                bottom = Option.Some(0f)
-            )
-        }
-
-        fun autoLPA(): Rect<LengthPercentageAuto> {
-            return Rect(
-                left = LengthPercentageAuto.Auto,
-                right = LengthPercentageAuto.Auto,
-                top = LengthPercentageAuto.Auto,
-                bottom = LengthPercentageAuto.Auto
-            )
-        }
-
-        fun zeroLPA(): Rect<LengthPercentageAuto> {
-            return Rect(
-                left = LengthPercentageAuto.Length(0f),
-                right = LengthPercentageAuto.Length(0f),
-                top = LengthPercentageAuto.Length(0f),
-                bottom = LengthPercentageAuto.Length(0f)
-            )
-        }
-
-        fun zeroLP(): Rect<LengthPercentage> {
-            return Rect(
-                left = LengthPercentage.Length(0f),
-                right = LengthPercentage.Length(0f),
-                top = LengthPercentage.Length(0f),
-                bottom = LengthPercentage.Length(0f)
-            )
         }
     }
 }

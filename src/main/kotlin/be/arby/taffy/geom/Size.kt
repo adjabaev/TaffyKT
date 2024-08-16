@@ -20,7 +20,12 @@ data class Size<T>(
      * The y extent of the rectangle
      */
     var height: T
-) {
+): Cloneable {
+
+    public override fun clone(): Size<T> {
+        return Size(width = width, height = height)
+    }
+
     fun getAbs(axis: AbsoluteAxis): T {
         return when (axis) {
             AbsoluteAxis.HORIZONTAL -> width

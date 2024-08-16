@@ -6,8 +6,10 @@ import be.arby.taffy.compute.common.computeContentSizeContribution
 import be.arby.taffy.geom.*
 import be.arby.taffy.lang.*
 import be.arby.taffy.lang.collections.*
+import be.arby.taffy.lang.tuples.T2
 import be.arby.taffy.maths.into
 import be.arby.taffy.maths.intoAS
+import be.arby.taffy.maths.isNormal
 import be.arby.taffy.style.BoxGenerationMode
 import be.arby.taffy.style.BoxSizing
 import be.arby.taffy.style.Overflow
@@ -48,7 +50,7 @@ fun computeFlexboxLayout(
     val boxSizingAdjustment = if (style.boxSizing() == BoxSizing.CONTENT_BOX) {
         paddingBorderSum
     } else {
-        Size.ZERO
+        Size.ZERO.clone()
     }
 
     val minSize = style
@@ -69,7 +71,7 @@ fun computeFlexboxLayout(
             .maybeAdd(boxSizingAdjustment)
             .maybeClamp(minSize, maxSize)
     } else {
-        Size.NONE
+        Size.NONE.clone()
     }
 
     // If both min and max in a given axis are set and max <= min then this determines the size in that axis
@@ -99,15 +101,7 @@ fun computeFlexboxLayout(
     return computePreliminary(
         tree,
         node,
-        LayoutInput(
-            runMode = runMode,
-            sizingMode = inputs.sizingMode,
-            axis = inputs.axis,
-            knownDimensions = styledBasedKnownDimensions,
-            parentSize = parentSize,
-            availableSpace = inputs.availableSpace,
-            verticalMarginsAreCollapsible = inputs.verticalMarginsAreCollapsible
-        )
+        inputs.copy(knownDimensions = styledBasedKnownDimensions)
     )
 }
 
@@ -241,8 +235,8 @@ fun computePreliminary(tree: LayoutFlexboxContainer, node: Int, inputs: LayoutIn
             tree.setUnroundedLayout(child, Layout.withOrder(order))
             tree.performChildLayout(
                 child,
-                Size.NONE,
-                Size.NONE,
+                Size.NONE.clone(),
+                Size.NONE.clone(),
                 Size.MAX_CONTENT,
                 SizingMode.INHERENT_SIZE,
                 Line.FALSE,
@@ -294,7 +288,7 @@ fun computeConstants(
     val boxSizingAdjustment = if (style.boxSizing() == BoxSizing.CONTENT_BOX) {
         paddingBorderSum
     } else {
-        Size.ZERO
+        Size.ZERO.clone()
     }
 
     val alignItems = style.alignItems().unwrapOr(AlignItems.STRETCH)
@@ -389,7 +383,7 @@ fun generateAnonymousFlexItems(
             val boxSizingAdjustment = if (childStyle.boxSizing() == BoxSizing.CONTENT_BOX) {
                 pbSum
             } else {
-                Size.ZERO
+                Size.ZERO.clone()
             }
             FlexItem(
                 node = child,
@@ -551,7 +545,7 @@ fun determineFlexBaseSize(
             val border = childStyle.border().resolveOrZero(containerWidth)
             (padding + border).sumAxes()
         } else {
-            Size.ZERO
+            Size.ZERO.clone()
         }.main(dir)
         val flexBasis = childStyle.flexBasis().maybeResolve(containerWidth).maybeAdd(boxSizingAdjustment)
 
@@ -1027,7 +1021,190 @@ fun resolveFlexibleLengths(
     line: FlexLine,
     constants: AlgoConstants
 ) {
+    val totalMainAxisGap = sumAxisGaps(constants.gap.main(constants.dir), line.items.len())
 
+    // 1. Determine the used flex factor. Sum the outer hypothetical main sizes of all
+    //    items on the line. If the sum is less than the flex container’s inner main size,
+    //    use the flex grow factor for the rest of this algorithm; otherwise, use the
+    //    flex shrink factor.
+
+    val totalHypotheticalOuterMainSize =
+        line.items.map { child -> child.hypotheticalOuterSize.main(constants.dir) }.sum()
+    val usedFlexFactor: Float = totalMainAxisGap + totalHypotheticalOuterMainSize
+    val growing = usedFlexFactor < constants.nodeInnerSize.main(constants.dir).unwrapOr(0f)
+    val shrinking = usedFlexFactor > constants.nodeInnerSize.main(constants.dir).unwrapOr(0f)
+    val exactlySized = !growing && !shrinking
+
+    // 2. Size inflexible items. Freeze, setting its target main size to its hypothetical main size
+    //    - Any item that has a flex factor of zero
+    //    - If using the flex grow factor: any item that has a flex base size
+    //      greater than its hypothetical main size
+    //    - If using the flex shrink factor: any item that has a flex base size
+    //      smaller than its hypothetical main size
+
+    for (child in line.items) {
+        val innerTargetSize = child.hypotheticalInnerSize.main(constants.dir)
+        child.targetSize.setMain(constants.dir, innerTargetSize)
+
+        if (exactlySized
+                || (child.flexGrow == 0f && child.flexShrink == 0f)
+                || (growing && child.flexBasis > child.hypotheticalInnerSize.main(constants.dir))
+                || (shrinking && child.flexBasis < child.hypotheticalInnerSize.main(constants.dir)))
+        {
+            child.frozen = true
+            val outerTargetSize = innerTargetSize + child.margin.mainAxisSum(constants.dir)
+            child.outerTargetSize.setMain(constants.dir, outerTargetSize)
+        }
+    }
+
+    if (exactlySized) {
+        return
+    }
+
+    // 3. Calculate initial free space. Sum the outer sizes of all items on the line,
+    //    and subtract this from the flex container’s inner main size. For frozen items,
+    //    use their outer target main size; for other items, use their outer flex base size.
+
+    val usedSpace: Float = totalMainAxisGap + line
+                .items
+                .map { child ->
+                    if (child.frozen) {
+                        child.outerTargetSize.main(constants.dir)
+                    } else {
+                        child.flexBasis + child.margin.mainAxisSum(constants.dir)
+                    }
+                }
+                .sum()
+
+    val initialFreeSpace = constants.nodeInnerSize.main(constants.dir).maybeSub(usedSpace).unwrapOr(0f)
+
+    // 4. Loop
+    while (true) {
+        // a. Check for flexible items. If all the flex items on the line are frozen,
+        //    free space has been distributed; exit this loop.
+
+        if (line.items.all { child -> child.frozen }) {
+            break
+        }
+
+        // b. Calculate the remaining free space as for initial free space, above.
+        //    If the sum of the unfrozen flex items’ flex factors is less than one,
+        //    multiply the initial free space by this sum. If the magnitude of this
+        //    value is less than the magnitude of the remaining free space, use this
+        //    as the remaining free space.
+
+        val usedSpace: Float = totalMainAxisGap + line
+                    .items
+                    .map { child ->
+                        if (child.frozen) {
+                            child.outerTargetSize.main(constants.dir)
+                        } else {
+                            child.flexBasis + child.margin.mainAxisSum(constants.dir)
+                        }
+                    }
+                    .sum()
+
+        val unfrozen: List<FlexItem> = line.items.filter { child -> !child.frozen}
+
+        val (sumFlexGrow, sumFlexShrink) = unfrozen.fold(T2(0f, 0f)) { (flexGrow, flexShrink), item ->
+            T2(flexGrow + item.flexGrow, flexShrink + item.flexShrink)
+        }
+
+        val free_space = if (growing && sumFlexGrow < 1f) {
+            (initialFreeSpace * sumFlexGrow - totalMainAxisGap)
+            .maybeMin(constants.nodeInnerSize.main(constants.dir)
+            .maybeSub(usedSpace))
+        } else if (shrinking && sumFlexShrink < 1f) {
+            (initialFreeSpace * sumFlexShrink - totalMainAxisGap)
+            .maybeMax(constants.nodeInnerSize.main(constants.dir)
+            .maybeSub(usedSpace))
+    } else {
+        (constants.nodeInnerSize.main(constants.dir).maybeSub(usedSpace))
+            .unwrapOr(usedFlexFactor - usedSpace)
+    }
+
+        // c. Distribute free space proportional to the flex factors.
+        //    - If the remaining free space is zero
+        //        Do Nothing
+        //    - If using the flex grow factor
+        //        Find the ratio of the item’s flex grow factor to the sum of the
+        //        flex grow factors of all unfrozen items on the line. Set the item’s
+        //        target main size to its flex base size plus a fraction of the remaining
+        //        free space proportional to the ratio.
+        //    - If using the flex shrink factor
+        //        For every unfrozen item on the line, multiply its flex shrink factor by
+        //        its inner flex base size, and note this as its scaled flex shrink factor.
+        //        Find the ratio of the item’s scaled flex shrink factor to the sum of the
+        //        scaled flex shrink factors of all unfrozen items on the line. Set the item’s
+        //        target main size to its flex base size minus a fraction of the absolute value
+        //        of the remaining free space proportional to the ratio. Note this may result
+        //        in a negative inner main size; it will be corrected in the next step.
+        //    - Otherwise
+        //        Do Nothing
+
+        if (free_space.isNormal()) {
+            if (growing && sumFlexGrow > 0f) {
+                for (child in unfrozen) {
+                    child
+                        .targetSize
+                        .setMain(constants.dir, child.flexBasis + free_space * (child.flexGrow / sumFlexGrow))
+                }
+            } else if (shrinking && sumFlexShrink > 0f) {
+                val sumScaledShrinkFactor: Float =
+                unfrozen.map { child -> child.innerFlexBasis * child.flexShrink }.sum()
+
+                if (sumScaledShrinkFactor > 0.0f) {
+                    for (child in unfrozen) {
+                        val scaledShrinkFactor = child.innerFlexBasis * child.flexShrink
+                        child.targetSize.setMain(
+                            constants.dir,
+                            child.flexBasis + free_space * (scaledShrinkFactor / sumScaledShrinkFactor)
+                        )
+                    }
+                }
+            }
+        }
+
+        // d. Fix min/max violations. Clamp each non-frozen item’s target main size by its
+        //    used min and max main sizes and floor its content-box size at zero. If the
+        //    item’s target main size was made smaller by this, it’s a max violation.
+        //    If the item’s target main size was made larger by this, it’s a min violation.
+
+        val totalViolation = unfrozen.fold(0f) { acc, child ->
+            val resolvedMinMain: Option<Float> = child.resolvedMinimumMainSize.into()
+            val maxMain = child.maxSize.main(constants.dir)
+            val clamped = child.targetSize.main(constants.dir).maybeClamp(resolvedMinMain, maxMain).max(0f)
+            child.violation = clamped - child.targetSize.main(constants.dir)
+            child.targetSize.setMain(constants.dir, clamped)
+            child.outerTargetSize.setMain(
+                constants.dir,
+                child.targetSize.main(constants.dir) + child.margin.mainAxisSum(constants.dir)
+            )
+
+            acc + child.violation
+        }
+
+        // e. Freeze over-flexed items. The total violation is the sum of the adjustments
+        //    from the previous step ∑(clamped size - unclamped size). If the total violation is:
+        //    - Zero
+        //        Freeze all items.
+        //    - Positive
+        //        Freeze all the items with min violations.
+        //    - Negative
+        //        Freeze all the items with max violations.
+
+        for (child in unfrozen) {
+            if (totalViolation > 0f) {
+                child.frozen = child.violation > 0f
+            } else if (totalViolation < 0f) {
+                child.frozen = child.violation < 0f
+            } else {
+                child.frozen = true
+            }
+        }
+
+        // f. Return to the start of this loop.
+    }
 }
 
 /**
@@ -1297,7 +1474,7 @@ fun determineUsedCrossSize(
                         if (childStyle.boxSizing() == BoxSizing.CONTENT_BOX) {
                             pbSum
                         } else {
-                            Size.ZERO
+                            Size.ZERO.clone()
                         }
 
                     val maxSizeIgnoringAspectRatio = childStyle
@@ -1626,13 +1803,13 @@ fun calculateLayoutLine(
     tree: LayoutFlexboxContainer,
     line: FlexLine,
     totalOffsetCross: RustDeref<Float>,
-    contentSize: Size<Float>,
+    contentSize: RustDeref<Size<Float>>,
     containerSize: Size<Float>,
     nodeInnerSize: Size<Option<Float>>,
     paddingBorder: Rect<Float>,
     direction: FlexDirection
 ) {
-    val totalOffsetMain = paddingBorder.mainStart(direction)
+    val totalOffsetMain = RustDeref(paddingBorder.mainStart(direction))
     val lineOffsetCross = line.offsetCross
 
     if (direction.isReverse()) {
@@ -1640,10 +1817,10 @@ fun calculateLayoutLine(
             calculateFlexItem(
                 tree,
                 item,
-                RustDeref(totalOffsetMain),
+                totalOffsetMain,
                 totalOffsetCross.get(),
                 lineOffsetCross,
-                RustDeref(contentSize),
+                contentSize,
                 containerSize,
                 nodeInnerSize,
                 direction
@@ -1654,10 +1831,10 @@ fun calculateLayoutLine(
             calculateFlexItem(
                 tree,
                 item,
-                RustDeref(totalOffsetMain),
+                totalOffsetMain,
                 totalOffsetCross.get(),
                 lineOffsetCross,
-                RustDeref(contentSize),
+                contentSize,
                 containerSize,
                 nodeInnerSize,
                 direction,
@@ -1678,7 +1855,7 @@ fun finalLayoutPass(
 ): Size<Float> {
     val totalOffsetCross = constants.contentBoxInset.crossStart(constants.dir)
 
-    var contentSize = Size.ZERO
+    val contentSize = RustDeref(Size.ZERO.clone())
 
     if (constants.isWrapReverse) {
         for (line in flexLines.rev()) {
@@ -1708,7 +1885,7 @@ fun finalLayoutPass(
         }
     }
 
-    return contentSize
+    return contentSize.get()
 }
 
 /**
@@ -1724,7 +1901,7 @@ fun performAbsoluteLayoutOnAbsoluteChildren(
     val insetRelativeSize =
         constants.containerSize - constants.border.sumAxes() - constants.scrollbarGutter.into()
 
-    var contentSize = Size.ZERO
+    var contentSize = Size.ZERO.clone()
 
     for (order in 0 until tree.childCount(node)) {
         val child = tree.getChildId(node, order)
@@ -1746,7 +1923,7 @@ fun performAbsoluteLayoutOnAbsoluteChildren(
         val border = childStyle.border().resolveOrZero(Option.Some(insetRelativeSize.width))
         val paddingBorderSum = (padding + border).sumAxes()
         var boxSizingAdjustment =
-            if (childStyle.boxSizing() == BoxSizing.CONTENT_BOX) paddingBorderSum else Size.ZERO
+            if (childStyle.boxSizing() == BoxSizing.CONTENT_BOX) paddingBorderSum else Size.ZERO.clone()
 
         // Resolve inset
         // Insets are resolved against the container size minus border
@@ -1818,7 +1995,7 @@ fun performAbsoluteLayoutOnAbsoluteChildren(
             width = constants.containerSize.width - finalSize.width - nonAutoMargin.horizontalAxisSum(),
             height = constants.containerSize.height - finalSize.height - nonAutoMargin.verticalAxisSum(),
         )
-            .f32Max(Size.ZERO)
+            .f32Max(Size.ZERO.clone())
 
         // Expand auto margins to fill available space
         val resolvedMargin = run {

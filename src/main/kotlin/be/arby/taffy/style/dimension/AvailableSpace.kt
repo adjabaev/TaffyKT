@@ -7,7 +7,7 @@ import be.arby.taffy.lang.Option
  * The amount of space available to a node in a given axis
  * <https://www.w3.org/TR/css-sizing-3/#available>
  */
-sealed class AvailableSpace {
+sealed class AvailableSpace: Cloneable {
     /**
      * The amount of space available is the specified number of pixels
      */
@@ -22,6 +22,14 @@ sealed class AvailableSpace {
      * The amount of space available is indefinite and the node should be laid out under a max-content constraint
      */
     data object MaxContent : AvailableSpace()
+
+    public override fun clone(): AvailableSpace {
+        return when (this) {
+            is Definite -> Definite(availableSpace)
+            is MinContent -> MinContent
+            is MaxContent -> MaxContent
+        }
+    }
 
     /**
      * Returns true for definite values, else false

@@ -8,7 +8,7 @@ import be.arby.taffy.lang.Option
  *
  * This is commonly combined with [`Rect`], [`Point`](crate::geometry::Point) and [`Size<T>`].
  */
-sealed class Dimension {
+sealed class Dimension: Cloneable {
     /**
      *  An absolute length in some abstract units. Users of Taffy may define what they correspond
      *  to in their application (pixels, logical pixels, mm, etc) as they see fit.
@@ -24,6 +24,14 @@ sealed class Dimension {
      * The dimension should be automatically computed
      */
     data object Auto : Dimension()
+
+    public override fun clone(): Dimension {
+        return when (this) {
+            is Length -> Length(f)
+            is Percent -> Percent(f)
+            is Auto -> Auto
+        }
+    }
 
     /**
      * Get Length value if value is Length variant

@@ -15,13 +15,13 @@ import be.arby.taffy.util.maybeAdd
 import be.arby.taffy.util.maybeClamp
 import be.arby.taffy.util.maybeMax
 import be.arby.taffy.util.maybeSub
-import kotlin.math.round
+import be.arby.taffy.lang.round
 
 /**
  * Compute layout for the root node in the tree
  */
 fun computeRootLayout(tree: LayoutPartialTree, root: Int, availableSpace: Size<AvailableSpace>) {
-    var knownDimensions = Size.NONE
+    var knownDimensions = Size.NONE.clone()
 
     val parentSize = availableSpace.intoOptions()
     var style = tree.getCoreContainerStyle(root)
@@ -34,7 +34,7 @@ fun computeRootLayout(tree: LayoutPartialTree, root: Int, availableSpace: Size<A
         val border = style.border().resolveOrZero(parentSize.width)
         val paddingBorderSize = (padding + border).sumAxes()
         val boxSizingAdjustment =
-            if (style.boxSizing() == BoxSizing.CONTENT_BOX) paddingBorderSize else Size.ZERO
+            if (style.boxSizing() == BoxSizing.CONTENT_BOX) paddingBorderSize else Size.ZERO.clone()
 
         val minSize = style
             .minSize()
@@ -83,7 +83,7 @@ fun computeRootLayout(tree: LayoutPartialTree, root: Int, availableSpace: Size<A
         availableSpace.intoOptions(),
         availableSpace,
         SizingMode.INHERENT_SIZE,
-        Line.FALSE,
+        Line.FALSE
     )
 
     style = tree.getCoreContainerStyle(root)
@@ -99,7 +99,7 @@ fun computeRootLayout(tree: LayoutPartialTree, root: Int, availableSpace: Size<A
         root,
         Layout(
             order = 0,
-            location = Point.ZERO,
+            location = Point.ZERO.clone(),
             size = output.size,
             contentSize = output.contentSize,
             scrollbarSize = scrollbarSize,
@@ -144,10 +144,10 @@ fun roundLayout(tree: RoundTree, nodeId: Int) {
  */
 private fun roundLayoutInner(tree: RoundTree, nodeId: Int, cumulativeX: Float, cumulativeY: Float) {
     val unroundedLayout = tree.getUnroundedLayout(nodeId)
-    val layout = unroundedLayout
+    val layout = unroundedLayout.clone()
 
-    val cumulativeX = cumulativeX + unroundedLayout.location.x;
-    val cumulativeY = cumulativeY + unroundedLayout.location.y;
+    val cumulativeX = cumulativeX + unroundedLayout.location.x
+    val cumulativeY = cumulativeY + unroundedLayout.location.y
 
     layout.location.x = round(unroundedLayout.location.x)
     layout.location.y = round(unroundedLayout.location.y)

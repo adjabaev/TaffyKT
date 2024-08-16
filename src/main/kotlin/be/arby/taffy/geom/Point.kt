@@ -17,7 +17,11 @@ data class Point<T>(
      * The y-coordinate
      */
     var y: T
-) {
+): Cloneable {
+    public override fun clone(): Point<T> {
+        return copy()
+    }
+
     /**
      * Applies the function `f` to both the x and y
      *

@@ -24,6 +24,6 @@ overflow: Point<Overflow>
             height = location.y + sizeContentSizeContribution.height,
         )
     } else {
-        Size.ZERO
+        Size.ZERO.clone()
     }
 }

@@ -19,7 +19,11 @@ data class Line<T>(
      * The end position of a line
      */
     var end: T
-) {
+): Cloneable {
+    public override fun clone(): Line<T> {
+        return Line(start = start, end = end)
+    }
+
     /**
      * Applies the function `f` to both the width and height
      *

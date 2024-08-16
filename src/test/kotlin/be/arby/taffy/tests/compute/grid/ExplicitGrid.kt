@@ -45,7 +45,7 @@ class ExplicitGrid {
 
     @Test
     fun `explicit grid sizing auto fill exact fit`() {
-        val gridStyle = Style.DEFAULT.copy(
+        val gridStyle = Style(
             display = Display.GRID,
             size = Size(width = length(120f), height = length(80f)),
             gridTemplateColumns = vec(rpt(GridTrackRepetition.AutoFill, vec(length(40f)))),
@@ -70,7 +70,7 @@ class ExplicitGrid {
 
     @Test
     fun `explicit grid sizing auto fill non exact fit`() {
-        val gridStyle = Style.DEFAULT.copy(
+        val gridStyle = Style(
             display = Display.GRID,
             size = Size(width = length(140f), height = length(90f)),
             gridTemplateColumns = vec(rpt(GridTrackRepetition.AutoFill, vec(length(40f)))),
@@ -95,7 +95,7 @@ class ExplicitGrid {
 
     @Test
     fun `explicit grid sizing auto fill min size exact fit`() {
-        val gridStyle = Style.DEFAULT.copy(
+        val gridStyle = Style(
             display = Display.GRID,
             minSize = Size(width = length(120f), height = length(80f)),
             gridTemplateColumns = vec(rpt(GridTrackRepetition.AutoFill, vec(length(40f)))),
@@ -120,7 +120,7 @@ class ExplicitGrid {
 
     @Test
     fun `explicit grid sizing auto fill min size non exact fit`() {
-        val gridStyle = Style.DEFAULT.copy(
+        val gridStyle = Style(
             display = Display.GRID,
             minSize = Size(width = length(140f), height = length(90f)),
             gridTemplateColumns = vec(rpt(GridTrackRepetition.AutoFill, vec(length(40f)))),
@@ -145,7 +145,7 @@ class ExplicitGrid {
 
     @Test
     fun `explicit grid sizing auto fill multiple repeated tracks`() {
-        val gridStyle = Style.DEFAULT.copy(
+        val gridStyle = Style(
             display = Display.GRID,
             size = Size(width = length(140f), height = length(100f)),
             gridTemplateColumns = vec(rpt(GridTrackRepetition.AutoFill, vec(length(40f), length(20f)))),
@@ -170,7 +170,7 @@ class ExplicitGrid {
 
     @Test
     fun `explicit grid sizing auto fill gap`() {
-        val gridStyle = Style.DEFAULT.copy(
+        val gridStyle = Style(
             display = Display.GRID,
             size = Size(width = length(140f), height = length(100f)),
             gridTemplateColumns = vec(rpt(GridTrackRepetition.AutoFill, vec(length(40f)))),
@@ -196,7 +196,7 @@ class ExplicitGrid {
 
     @Test
     fun `explicit grid sizing no defined size`() {
-        val gridStyle = Style.DEFAULT.copy(
+        val gridStyle = Style(
             display = Display.GRID,
             gridTemplateColumns = vec(rpt(GridTrackRepetition.AutoFill, vec(length(40f), percent(0.5f), length(20f)))),
             gridTemplateRows = vec(rpt(GridTrackRepetition.AutoFill, vec(length(20f)))),
@@ -221,7 +221,7 @@ class ExplicitGrid {
 
     @Test
     fun `explicit grid sizing mix repeated and non repeated`() {
-        val gridStyle = Style.DEFAULT.copy(
+        val gridStyle = Style(
             display = Display.GRID,
             size = Size(width = length(140f), height = length(100f)),
             gridTemplateColumns = vec(length(20f), rpt(GridTrackRepetition.AutoFill, vec(length(40f)))),
@@ -247,7 +247,7 @@ class ExplicitGrid {
 
     @Test
     fun `explicit grid sizing mix with padding`() {
-        val gridStyle = Style.DEFAULT.copy(
+        val gridStyle = Style(
             display = Display.GRID,
             size = Size(width = length(120f), height = length(120f)),
             padding = Rect(left = length(10f), right = length(10f), top = length(20f), bottom = length(20f)),

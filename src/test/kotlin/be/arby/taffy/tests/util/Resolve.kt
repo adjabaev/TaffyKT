@@ -94,10 +94,10 @@ class MaybeResolveSizeDimension {
      */
     @Test
     fun `maybe resolve auto`() {
-        mrCase(Size.autoD(), Size.NONE, Size.NONE)
-        mrCase(Size.autoD(), Size.new(5f, 5f), Size.NONE)
-        mrCase(Size.autoD(), Size.new(-5f, -5f), Size.NONE)
-        mrCase(Size.autoD(), Size.new(0f, 0f), Size.NONE)
+        mrCase(Size.autoD(), Size.NONE.clone(), Size.NONE.clone())
+        mrCase(Size.autoD(), Size.new(5f, 5f), Size.NONE.clone())
+        mrCase(Size.autoD(), Size.new(-5f, -5f), Size.NONE.clone())
+        mrCase(Size.autoD(), Size.new(0f, 0f), Size.NONE.clone())
     }
 
     /**
@@ -108,7 +108,7 @@ class MaybeResolveSizeDimension {
      */
     @Test
     fun `maybe resolve length`() {
-        mrCase(Size.fromLengths(5f, 5f), Size.NONE, Size.new(5f, 5f))
+        mrCase(Size.fromLengths(5f, 5f), Size.NONE.clone(), Size.new(5f, 5f))
         mrCase(Size.fromLengths(5f, 5f), Size.new(5f, 5f), Size.new(5f, 5f))
         mrCase(Size.fromLengths(5f, 5f), Size.new(-5f, -5f), Size.new(5f, 5f))
         mrCase(Size.fromLengths(5f, 5f), Size.new(0f, 0f), Size.new(5f, 5f))
@@ -123,7 +123,7 @@ class MaybeResolveSizeDimension {
      */
     @Test
     fun `maybe resolve percent`() {
-        mrCase(Size.fromPercent(5f, 5f), Size.NONE, Size.NONE)
+        mrCase(Size.fromPercent(5f, 5f), Size.NONE.clone(), Size.NONE.clone())
         mrCase(Size.fromPercent(5f, 5f), Size.new(5f, 5f), Size.new(25f, 25f))
         mrCase(Size.fromPercent(5f, 5f), Size.new(-5f, -5f), Size.new(-25f, -25f))
         mrCase(Size.fromPercent(5f, 5f), Size.new(0f, 0f), Size.new(0f, 0f))
@@ -159,7 +159,7 @@ class ResolveOrZeroDimensionToOptionF32 {
 class ResolveOrZeroRectDimensionToRect {
     @Test
     fun `resolve or zero auto`() {
-        rozCase(Rect.auto<Dimension>(), Size.NONE, Rect.zero<Float>())
+        rozCase(Rect.auto<Dimension>(), Size.NONE.clone(), Rect.zero<Float>())
         rozCase(Rect.auto<Dimension>(), Size.new(5f, 5f), Rect.zero<Float>())
         rozCase(Rect.auto<Dimension>(), Size.new(-5f, -5f), Rect.zero<Float>())
         rozCase(Rect.auto<Dimension>(), Size.new(0f, 0f), Rect.zero<Float>())
@@ -167,7 +167,7 @@ class ResolveOrZeroRectDimensionToRect {
 
     @Test
     fun `resolve or zero length`() {
-        rozCase(Rect.fromLength(5f, 5f, 5f, 5f), Size.NONE, Rect.new(5f, 5f, 5f, 5f))
+        rozCase(Rect.fromLength(5f, 5f, 5f, 5f), Size.NONE.clone(), Rect.new(5f, 5f, 5f, 5f))
         rozCase(Rect.fromLength(5f, 5f, 5f, 5f), Size.new(5f, 5f), Rect.new(5f, 5f, 5f, 5f))
         rozCase(Rect.fromLength(5f, 5f, 5f, 5f), Size.new(-5f, -5f), Rect.new(5f, 5f, 5f, 5f))
         rozCase(Rect.fromLength(5f, 5f, 5f, 5f), Size.new(0f, 0f), Rect.new(5f, 5f, 5f, 5f))
@@ -175,7 +175,7 @@ class ResolveOrZeroRectDimensionToRect {
 
     @Test
     fun `resolve or zero percent`() {
-        rozCase(Rect.fromPercent(5f, 5f, 5f, 5f), Size.NONE, Rect.zero<Float>())
+        rozCase(Rect.fromPercent(5f, 5f, 5f, 5f), Size.NONE.clone(), Rect.zero<Float>())
         rozCase(Rect.fromPercent(5f, 5f, 5f, 5f), Size.new(5f, 5f), Rect.new(25f, 25f, 25f, 25f))
         rozCase(
             Rect.fromPercent(5f, 5f, 5f, 5f),

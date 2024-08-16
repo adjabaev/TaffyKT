@@ -1,6 +1,6 @@
 package be.arby.taffy.lang
 
-sealed class Option<out T> {
+sealed class Option<out T>: Cloneable {
     data class Some<out T>(val value: T) : Option<T>() {
         override fun equals(other: Any?): Boolean {
             return when (other) {
@@ -98,6 +98,13 @@ sealed class Option<out T> {
 
     override fun hashCode(): Int {
         return javaClass.hashCode()
+    }
+
+    public override fun clone(): Option<T> {
+        return when (this) {
+            is Some -> Some(value)
+            is None -> None
+        }
     }
 
     companion object {

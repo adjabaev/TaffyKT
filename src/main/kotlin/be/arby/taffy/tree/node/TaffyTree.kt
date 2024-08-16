@@ -7,13 +7,15 @@ import be.arby.taffy.lang.Option
 import be.arby.taffy.lang.Result
 import be.arby.taffy.lang.collections.RustMap
 import be.arby.taffy.lang.collections.len
-import be.arby.taffy.lang.collections.position
+import be.arby.taffy.style.Display
 import be.arby.taffy.style.Style
 import be.arby.taffy.style.dimension.AvailableSpace
 import be.arby.taffy.tree.layout.Layout
 import be.arby.taffy.tree.traits.LayoutPartialTree
+import be.arby.taffy.tree.traits.PrintTree
 import be.arby.taffy.tree.traits.TraversePartialTree
 import be.arby.taffy.tree.traits.TraverseTree
+import be.arby.taffy.util.Debug
 import be.arby.taffy.vec
 
 typealias TaffyResult = Result<Int>
@@ -49,7 +51,37 @@ data class TaffyTree<NodeContext>(
      * Layout mode configuration
      */
     val config: TaffyConfig
-): TraversePartialTree, TraverseTree {
+) : TraversePartialTree, TraverseTree, PrintTree {
+    override fun getDebugLabel(nodeId: Int): String {
+        val node = nodes[nodeId]!!
+        val display = node.style.display
+        val numChildren = childCount(nodeId)
+
+        return if (display == Display.NONE) {
+            "NONE"
+        } else if (numChildren == 0) {
+            "LEAF"
+        } else if (display == Display.BLOCK) {
+            "BLOCK"
+        } else if (display == Display.FLEX) {
+            if (node.style.flexDirection.isColumn()) {
+                "FLEX COL"
+            } else {
+                "FLEX ROW"
+            }
+        } else {
+            "GRID"
+        }
+    }
+
+    override fun getFinalLayout(nodeId: Int): Layout {
+        return if (config.useRounding) {
+            nodes[nodeId]!!.finalLayout
+        } else {
+            nodes[nodeId]!!.unroundedLayout
+        }
+    }
+
     override fun childIds(parentNodeId: Int): MutableList<Int> {
         return children[parentNodeId] ?: throw TaffyError.InvalidParentNode(parentNodeId)
     }
@@ -184,21 +216,14 @@ data class TaffyTree<NodeContext>(
     }
 
     /**
-     * Gets references to the the context data associated with the nodes. All keys must be valid and disjoint, otherwise None is returned.
-     */
-    fun getDisjointNodeContext(keys: List<Int>): Option<List<NodeContext>> {
-        return nodeContextData.getDisjoint()
-    }
-
-    /**
      * Adds a `child` node under the supplied `parent`
      */
-    fun addChild(parent: Int, child: Int): TaffyResult {
-        parents[parent] = Option.Some(parent)
-        children[child]?.add(child)
+    fun addChild(parent: Int, child: Int): Result<Boolean> {
+        parents[child] = Option.Some(parent)
+        children[parent]?.add(child)
         markDirty(parent)
 
-        return Result.Ok(-1)
+        return Result.Ok(false)
     }
 
     /**
@@ -245,9 +270,8 @@ data class TaffyTree<NodeContext>(
      *
      * The child is not removed from the tree entirely, it is simply no longer attached to its previous parent.
      */
-    fun removeChild(parent: Int, child: Int): TaffyResult {
-        val cp: List<Int> = children[parent] ?: return Result.Err(TaffyError.InvalidParentNode(parent))
-        val index = cp.position { n -> n == child }.unwrap()
+    fun removeChild(parent: Int, child: Int): Result<Int> {
+        val index = children[parent]!!.indexOf(child)
         return removeChildAtIndex(parent, index)
     }
 
@@ -257,12 +281,12 @@ data class TaffyTree<NodeContext>(
      * The child is not removed from the tree entirely, it is simply no longer attached to its previous parent.
      */
     fun removeChildAtIndex(parent: Int, childIndex: Int): Result<Int> {
-        val childCount = children[parent]?.len() ?: return Result.Err(TaffyError.InvalidParentNode(parent))
+        val childCount = children[parent]!!.len()
         if (childIndex >= childCount) {
             return Result.Err(TaffyError.ChildIndexOutOfBounds(parent, childIndex, childCount))
         }
 
-        children[parent]?.remove(childIndex)
+        children[parent]!!.removeAt(childIndex)
         parents[childIndex] = Option.None
 
         markDirty(parent)
@@ -364,8 +388,9 @@ data class TaffyTree<NodeContext>(
     ) {
         nodes[nodeKey]!!.markDirty()
 
-        if (parents[nodeKey]!!.isSome()) {
-            markDirtyRecursive(nodes, parents, parents[nodeKey]!!.unwrap())
+        when (val v = parents[nodeKey]!!) {
+            is Option.Some -> markDirtyRecursive(nodes, parents, v.unwrap())
+            else -> {}
         }
     }
 
@@ -394,7 +419,7 @@ data class TaffyTree<NodeContext>(
     /**
      * Updates the stored layout of the provided `node` and its children
      */
-    fun <MeasureFunction: (Size<Option<Float>>, Size<AvailableSpace>, Int, Option<NodeContext>, Style) -> Size<Float>>computeLayoutWithMeasure(
+    fun <MeasureFunction : (Size<Option<Float>>, Size<AvailableSpace>, Int, Option<NodeContext>, Style) -> Size<Float>> computeLayoutWithMeasure(
         nodeId: Int,
         availableSpace: Size<AvailableSpace>,
         measureFunction: MeasureFunction
@@ -412,21 +437,21 @@ data class TaffyTree<NodeContext>(
      * Updates the stored layout of the provided `node` and its children
      */
     fun computeLayout(node: Int, availableSpace: Size<AvailableSpace>): Result<Boolean> {
-        return computeLayoutWithMeasure(node, availableSpace, { _, _, _, _, _ -> Size.ZERO })
+        return computeLayoutWithMeasure(node, availableSpace, { _, _, _, _, _ -> Size.ZERO.clone() })
     }
 
     /**
      * Prints a debug representation of the tree's layout
      */
     fun printTree(root: Int) {
-        // TODO - implement printing trees
+        Debug.printTree(this, root)
     }
 
     /**
      * Returns an instance of LayoutTree representing the TaffyTree
      */
     fun asLayoutTree(): LayoutPartialTree {
-        return TaffyView(taffy = this, measureFunction = { _, _, _, _, _ -> Size.ZERO })
+        return TaffyView(taffy = this, measureFunction = { _, _, _, _, _ -> Size.ZERO.clone() })
     }
 
     companion object {

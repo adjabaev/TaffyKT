@@ -83,7 +83,7 @@ interface LayoutPartialTree: TraversePartialTree {
                 axis = RequestedAxis.BOTH,
                 runMode = RunMode.PERFORM_LAYOUT,
                 verticalMarginsAreCollapsible = verticalMarginsAreCollapsible,
-            ),
+            )
         )
     }
 }

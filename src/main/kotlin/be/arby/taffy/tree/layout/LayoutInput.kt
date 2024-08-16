@@ -53,8 +53,8 @@ data class LayoutInput(
             // The important property for hidden layout
             runMode = RunMode.PERFORM_HIDDEN_LAYOUT,
             // The rest will be ignored
-            knownDimensions = Size.NONE,
-            parentSize = Size.NONE,
+            knownDimensions = Size.NONE.clone(),
+            parentSize = Size.NONE.clone(),
             availableSpace = Size.MAX_CONTENT,
             sizingMode = SizingMode.INHERENT_SIZE,
             axis = RequestedAxis.BOTH,

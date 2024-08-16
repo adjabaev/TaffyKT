@@ -280,7 +280,7 @@ data class GridItem(
         val border = border.resolveOrZero(gridAreaSize);
         val paddingBorderSize = (padding + border).sumAxes();
         val boxSizingAdjustment =
-            if (boxSizing == BoxSizing.CONTENT_BOX) paddingBorderSize else Size.ZERO
+            if (boxSizing == BoxSizing.CONTENT_BOX) paddingBorderSize else Size.ZERO.clone()
         val inherentSize = size
             .maybeResolve(gridAreaSize)
             .maybeApplyAspectRatio(aspectRatio)
@@ -363,7 +363,7 @@ data class GridItem(
                 .sum()
         }
 
-        val size = Size.NONE
+        val size = Size.NONE.clone()
         size.set(axis.other(), itemOtherAxisSize)
 
         return size
@@ -504,7 +504,7 @@ data class GridItem(
         val padding = padding.resolveOrZero(innerNodeSize)
         val border = border.resolveOrZero(innerNodeSize)
         val paddingBorderSize = (padding + border).sumAxes()
-        val boxSizingAdjustment = if (boxSizing == BoxSizing.CONTENT_BOX) paddingBorderSize else Size.ZERO
+        val boxSizingAdjustment = if (boxSizing == BoxSizing.CONTENT_BOX) paddingBorderSize else Size.ZERO.clone()
         val size = size
             .maybeResolve(innerNodeSize)
             .maybeApplyAspectRatio(aspectRatio)
@@ -614,9 +614,9 @@ data class GridItem(
                 crossesIntrinsicRow = false,           // Properly initialised later
                 crossesIntrinsicColumn = false,        // Properly initialised later
                 availableSpaceCache = Option.None,
-                minContentContributionCache = Size.NONE,
-                maxContentContributionCache = Size.NONE,
-                minimumContributionCache = Size.NONE,
+                minContentContributionCache = Size.NONE.clone(),
+                maxContentContributionCache = Size.NONE.clone(),
+                minimumContributionCache = Size.NONE.clone(),
                 yPosition = 0f,
                 height = 0f
             )

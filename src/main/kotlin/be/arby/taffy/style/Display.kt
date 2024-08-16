@@ -30,7 +30,7 @@ enum class Display {
 
     companion object: Default<Display> {
         override fun default(): Display {
-            return BLOCK
+            return FLEX
         }
     }
 }

@@ -11,7 +11,6 @@ import be.arby.taffy.compute.grid.util.intoOz
 import be.arby.taffy.geom.AbsoluteAxis
 import be.arby.taffy.lang.collections.enumerate
 import be.arby.taffy.lang.collections.iter
-import be.arby.taffy.lang.collections.sortByKey
 import be.arby.taffy.lang.tuples.T3
 import be.arby.taffy.lang.tuples.T4
 import be.arby.taffy.line
@@ -21,7 +20,6 @@ import be.arby.taffy.style.alignment.AlignSelf
 import be.arby.taffy.style.grid.GridAutoFlow
 import be.arby.taffy.style.grid.GridPlacement
 import be.arby.taffy.tests.assertEq
-import be.arby.taffy.tree.NodeId
 import be.arby.taffy.vec
 import org.junit.jupiter.api.Test
 
@@ -38,7 +36,7 @@ class TestPlacementAlgorithm {
         flow: GridAutoFlow
     ) {
         // Setup test
-        val childrenIter = { children.map { (index, style, _) -> T3(index, NodeId.new(index.toLong()), style) } }
+        val childrenIter = { children.map { (index, style, _) -> T3(index, index, style) } }
         val childStylesIter = children.map { (_, style, _) -> style }.iter()
         val estimatedSizes = computeGridSizeEstimate(explicitColCount, explicitRowCount, childStylesIter)
         val items = vec<GridItem>()
@@ -60,7 +58,7 @@ class TestPlacementAlgorithm {
         for ((idx, v1) in sortedChildren.zip(items).enumerate()) {
             val (v2, item) = v1
             val (id, us, expectedPlacement) = v2
-            assertEq(item.node, NodeId.new(id.toLong()))
+            assertEq(item.node, id)
             val actualPlacement = T4(item.column.start, item.column.end, item.row.start, item.row.end)
             assertEq(actualPlacement, (expectedPlacement).intoOz(), "Item $idx (0-indexed)")
         }
@@ -119,14 +117,14 @@ class TestPlacementAlgorithm {
             val autoChild = T4GP(auto(), auto(), auto(), auto()).intoGridChild()
             vec(
                 // output order, node, style (grid coords), expected_placement (oz coords)
-                T3(1, autoChild.copy(), T4(0, 1, 0, 1)),
-                T3(2, autoChild.copy(), T4(1, 2, 0, 1)),
-                T3(3, autoChild.copy(), T4(0, 1, 1, 2)),
-                T3(4, autoChild.copy(), T4(1, 2, 1, 2)),
-                T3(5, autoChild.copy(), T4(0, 1, 2, 3)),
-                T3(6, autoChild.copy(), T4(1, 2, 2, 3)),
-                T3(7, autoChild.copy(), T4(0, 1, 3, 4)),
-                T3(8, autoChild.copy(), T4(1, 2, 3, 4))
+                T3(1, autoChild.clone(), T4(0, 1, 0, 1)),
+                T3(2, autoChild.clone(), T4(1, 2, 0, 1)),
+                T3(3, autoChild.clone(), T4(0, 1, 1, 2)),
+                T3(4, autoChild.clone(), T4(1, 2, 1, 2)),
+                T3(5, autoChild.clone(), T4(0, 1, 2, 3)),
+                T3(6, autoChild.clone(), T4(1, 2, 2, 3)),
+                T3(7, autoChild.clone(), T4(0, 1, 3, 4)),
+                T3(8, autoChild.clone(), T4(1, 2, 3, 4))
             )
         }
         val expectedCols = TrackCounts(negativeImplicit = 0, explicit = 2, positiveImplicit = 0)
@@ -143,14 +141,14 @@ class TestPlacementAlgorithm {
             val autoChild = T4GP(auto(), auto(), auto(), auto()).intoGridChild()
             vec(
                 // output order, node, style (grid coords), expected_placement (oz coords)
-                T3(1, autoChild.copy(), T4(0, 1, 0, 1)),
-                T3(2, autoChild.copy(), T4(0, 1, 1, 2)),
-                T3(3, autoChild.copy(), T4(1, 2, 0, 1)),
-                T3(4, autoChild.copy(), T4(1, 2, 1, 2)),
-                T3(5, autoChild.copy(), T4(2, 3, 0, 1)),
-                T3(6, autoChild.copy(), T4(2, 3, 1, 2)),
-                T3(7, autoChild.copy(), T4(3, 4, 0, 1)),
-                T3(8, autoChild.copy(), T4(3, 4, 1, 2))
+                T3(1, autoChild.clone(), T4(0, 1, 0, 1)),
+                T3(2, autoChild.clone(), T4(0, 1, 1, 2)),
+                T3(3, autoChild.clone(), T4(1, 2, 0, 1)),
+                T3(4, autoChild.clone(), T4(1, 2, 1, 2)),
+                T3(5, autoChild.clone(), T4(2, 3, 0, 1)),
+                T3(6, autoChild.clone(), T4(2, 3, 1, 2)),
+                T3(7, autoChild.clone(), T4(3, 4, 0, 1)),
+                T3(8, autoChild.clone(), T4(3, 4, 1, 2))
             )
         }
         val expectedCols = TrackCounts(negativeImplicit = 0, explicit = 2, positiveImplicit = 2)

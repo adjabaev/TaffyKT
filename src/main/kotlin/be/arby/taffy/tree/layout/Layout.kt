@@ -10,7 +10,7 @@ import be.arby.taffy.lang.f32Min
 /**
  * The final result of a layout algorithm for a single node.
  */
-class Layout(
+data class Layout(
     /**
      * The relative ordering of the node
      *
@@ -47,7 +47,7 @@ class Layout(
      * The size of the margin of the node
      */
     var margin: Rect<Float>
-) {
+): Cloneable {
     /**
      * Return the scroll width of the node.
      * The scroll width is the difference between the width and the content width, floored at zero
@@ -70,6 +70,19 @@ class Layout(
         )
     }
 
+    public override fun clone(): Layout {
+        return Layout(
+            order = order,
+            location = location.clone(),
+            size = size.clone(),
+            contentSize = contentSize.clone(),
+            scrollbarSize = scrollbarSize.clone(),
+            border = border.clone(),
+            padding = padding.clone(),
+            margin = margin.clone()
+        )
+    }
+
     companion object: Default<Layout> {
         override fun default(): Layout {
             return new()
@@ -85,13 +98,13 @@ class Layout(
         fun new(): Layout {
             return Layout(
                 order = 0,
-                location = Point.ZERO,
-                size = Size.ZERO,
-                contentSize = Size.ZERO,
-                scrollbarSize = Size.ZERO,
-                border = Rect.ZERO,
-                padding = Rect.ZERO,
-                margin = Rect.ZERO
+                location = Point.ZERO.clone(),
+                size = Size.ZERO.clone(),
+                contentSize = Size.ZERO.clone(),
+                scrollbarSize = Size.ZERO.clone(),
+                border = Rect.ZERO.clone(),
+                padding = Rect.ZERO.clone(),
+                margin = Rect.ZERO.clone()
             )
         }
 
@@ -104,13 +117,13 @@ class Layout(
         fun withOrder(order: Int): Layout {
             return Layout(
                 order = order,
-                location = Point.ZERO,
-                size = Size.ZERO,
-                contentSize = Size.ZERO,
-                scrollbarSize = Size.ZERO,
-                border = Rect.ZERO,
-                padding = Rect.ZERO,
-                margin = Rect.ZERO
+                location = Point.ZERO.clone(),
+                size = Size.ZERO.clone(),
+                contentSize = Size.ZERO.clone(),
+                scrollbarSize = Size.ZERO.clone(),
+                border = Rect.ZERO.clone(),
+                padding = Rect.ZERO.clone(),
+                margin = Rect.ZERO.clone()
             )
         }
     }

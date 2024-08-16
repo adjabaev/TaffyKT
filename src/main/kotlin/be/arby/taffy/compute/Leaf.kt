@@ -36,15 +36,15 @@ fun <MeasureFunction : (Size<Option<Float>>, Size<AvailableSpace>) -> Size<Float
     val border = style.border().resolveOrZero(parentSize.width)
     val paddingBorder = padding + border
     val pbSum = paddingBorder.sumAxes()
-    val boxSizingAdjustment = if (style.boxSizing() == BoxSizing.CONTENT_BOX) pbSum else Size.ZERO
+    val boxSizingAdjustment = if (style.boxSizing() == BoxSizing.CONTENT_BOX) pbSum else Size.ZERO.clone()
 
     // Resolve node's preferred/min/max sizes (width/heights) against the available space (percentages resolve to pixel values)
     // For ContentSize mode, we pretend that the node has no size styles as these should be ignored.
     val (nodeSize, nodeMinSize, nodeMaxSize, aspectRatio) = when (sizingMode) {
         SizingMode.CONTENT_SIZE -> {
             val nodeSize = knownDimensions
-            val nodeMinSize = Size.NONE
-            val nodeMaxSize = Size.NONE
+            val nodeMinSize = Size.NONE.clone()
+            val nodeMaxSize = Size.NONE.clone()
             T4(nodeSize, nodeMinSize, nodeMaxSize, Option.None)
         }
 
@@ -100,10 +100,10 @@ fun <MeasureFunction : (Size<Option<Float>>, Size<AvailableSpace>) -> Size<Float
                 .maybeMax(paddingBorder.sumAxes().map { v -> Option.Some(v) })
             return LayoutOutput(
                 size,
-                contentSize = Size.ZERO,
+                contentSize = Size.ZERO.clone(),
                 firstBaselines = Point.NONE,
-                topMargin = CollapsibleMarginSet.ZERO,
-                bottomMargin = CollapsibleMarginSet.ZERO,
+                topMargin = CollapsibleMarginSet.ZERO.clone(),
+                bottomMargin = CollapsibleMarginSet.ZERO.clone(),
                 marginsCanCollapseThrough = false
             )
         }
@@ -139,7 +139,7 @@ fun <MeasureFunction : (Size<Option<Float>>, Size<AvailableSpace>) -> Size<Float
     val measuredSize = measureFunction(
         when (runMode) {
             RunMode.COMPUTE_SIZE -> knownDimensions
-            RunMode.PERFORM_LAYOUT -> Size.NONE
+            RunMode.PERFORM_LAYOUT -> Size.NONE.clone()
             RunMode.PERFORM_HIDDEN_LAYOUT -> {
                 throw Exception("Shouldn't happen")
             }
@@ -160,8 +160,8 @@ fun <MeasureFunction : (Size<Option<Float>>, Size<AvailableSpace>) -> Size<Float
         size,
         contentSize = measuredSize + padding.sumAxes(),
         firstBaselines = Point.NONE,
-        topMargin = CollapsibleMarginSet.ZERO,
-        bottomMargin = CollapsibleMarginSet.ZERO,
+        topMargin = CollapsibleMarginSet.ZERO.clone(),
+        bottomMargin = CollapsibleMarginSet.ZERO.clone(),
         marginsCanCollapseThrough = !hasStylesPreventingBeingCollapsedThrough && size.height == 0f && measuredSize.height == 0f
     )
 }

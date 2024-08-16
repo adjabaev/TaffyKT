@@ -11,7 +11,7 @@ import be.arby.taffy.style.dimension.Dimension
 import be.arby.taffy.style.grid.GridPlacement
 
 fun T4<Float, Float, Int, Int>.intoGrid(): Style {
-    return Style.DEFAULT.copy(
+    return Style(
         display = Display.GRID,
         size = Size(width = Dimension.Length(first), height = Dimension.Length(second)),
         gridTemplateColumns = MutableList(third) { fr(1f) },
@@ -29,7 +29,7 @@ fun T4<Int, Int, Int, Int>.intoOz(): T4<OriginZeroLine, OriginZeroLine, OriginZe
 }
 
 fun T4<GridPlacement, GridPlacement, GridPlacement, GridPlacement>.intoGridChild(): Style {
-    return Style.DEFAULT.copy(
+    return Style(
         display = Display.GRID,
         gridColumn = Line(start = first, end = second),
         gridRow = Line(start = third, end = fourth)

@@ -15,6 +15,7 @@ import be.arby.taffy.style.flex.FlexWrap
 import be.arby.taffy.style.flex.FlexboxContainerStyle
 import be.arby.taffy.style.flex.FlexboxItemStyle
 import be.arby.taffy.style.grid.*
+import be.arby.taffy.vec
 
 /**
  * A typed representation of the CSS style information for a single node.
@@ -36,169 +37,169 @@ data class Style(
     /**
      * What layout strategy should be used?
      */
-    var display: Display,
+    var display: Display = Display.default(),
     /**
      * Whether a child is display:table or not. This affects children of block layouts.
      * This should really be part of `Display`, but it is currently separate because table layout isn't implemented
      */
-    var itemIsTable: Boolean,
+    var itemIsTable: Boolean = false,
     /**
      * Should size styles apply to the content box or the border box of the node
      */
-    var boxSizing: BoxSizing,
+    var boxSizing: BoxSizing = BoxSizing.BORDER_BOX,
 
     /// Overflow properties
     /**
      * How children overflowing their container should affect layout
      */
-    var overflow: Point<Overflow>,
+    var overflow: Point<Overflow> = Point(x = Overflow.VISIBLE, y = Overflow.VISIBLE),
     /**
      * How much space (in points) should be reserved for the scrollbars of `Overflow::Scroll` and `Overflow::Auto` nodes.
      */
-    var scrollbarWidth: Float,
+    var scrollbarWidth: Float = 0f,
 
     /// Position properties
     /**
      * What should the `position` value of this struct use as a base offset?
      */
-    var position: Position,
+    var position: Position = Position.RELATIVE,
     /**
      * How should the position of this element be tweaked relative to the layout defined?
      */
-    var inset: Rect<LengthPercentageAuto>,
+    var inset: Rect<LengthPercentageAuto> = Rect.auto(),
 
     /// Size properties
     /**
      * Sets the initial size of the item
      */
-    var size: Size<Dimension>,
+    var size: Size<Dimension> = Size.autoD(),
     /**
      * Controls the minimum size of the item
      */
-    var minSize: Size<Dimension>,
+    var minSize: Size<Dimension> = Size.autoD(),
     /**
      * Controls the maximum size of the item
      */
-    var maxSize: Size<Dimension>,
+    var maxSize: Size<Dimension> = Size.autoD(),
     /**
      * Sets the preferred aspect ratio for the item
      *
      * The ratio is calculated as width divided by height.
      */
-    var aspectRatio: Option<Float>,
+    var aspectRatio: Option<Float> = Option.None,
 
     /// Spacing Properties
     /**
      * How large should the margin be on each side?
      */
-    var margin: Rect<LengthPercentageAuto>,
+    var margin: Rect<LengthPercentageAuto> = Rect.zero(),
     /**
      * How large should the padding be on each side?
      */
-    var padding: Rect<LengthPercentage>,
+    var padding: Rect<LengthPercentage> = Rect.zero(),
     /**
      * How large should the border be on each side?
      */
-    var border: Rect<LengthPercentage>,
+    var border: Rect<LengthPercentage> = Rect.zero(),
 
     /// Alignment properties
     /**
      * How this node's children aligned in the cross/block axis?
      */
-    var alignItems: Option<AlignItems>,
+    var alignItems: Option<AlignItems> = Option.None,
     /**
      * How this node should be aligned in the cross/block axis
      * Falls back to the parents [`AlignItems`] if not set
      */
-    var alignSelf: Option<AlignSelf>,
+    var alignSelf: Option<AlignSelf> = Option.None,
     /**
      * How this node's children should be aligned in the inline axis
      */
-    var justifyItems: Option<JustifyItems>,
+    var justifyItems: Option<JustifyItems> = Option.None,
     /**
      * How this node should be aligned in the inline axis
      * Falls back to the parents [`JustifyItems`] if not set
      */
-    var justifySelf: Option<JustifySelf>,
+    var justifySelf: Option<JustifySelf> = Option.None,
     /**
      * How should content contained within this item be aligned in the cross/block axis
      */
-    var alignContent: Option<AlignContent>,
+    var alignContent: Option<AlignContent> = Option.None,
     /**
      * How should contained within this item be aligned in the main/inline axis
      */
-    var justifyContent: Option<JustifyContent>,
+    var justifyContent: Option<JustifyContent> = Option.None,
     /**
      * How large should the gaps between items in a grid or flex container be?
      */
-    var gap: Size<LengthPercentage>,
+    var gap: Size<LengthPercentage> = Size.zeroLP(),
 
     /// Block container properties
     /**
      * How items elements should aligned in the inline axis
      */
-    var textAlign: TextAlign,
+    var textAlign: TextAlign = TextAlign.AUTO,
 
     // Flexbox container properties
     /**
      * Which direction does the main axis flow in?
      */
-    var flexDirection: FlexDirection,
+    var flexDirection: FlexDirection = FlexDirection.ROW,
     /**
      * Should elements wrap, or stay in a single line?
      */
-    var flexWrap: FlexWrap,
+    var flexWrap: FlexWrap = FlexWrap.NO_WRAP,
 
     /// Flexbox item properties
     /**
      * Sets the initial main axis size of the item
      */
-    var flexBasis: Dimension,
+    var flexBasis: Dimension = Dimension.Auto,
     /**
      * The relative rate at which this item grows when it is expanding to fill space
      *
      * 0f is the default value, and this value must be positive.
      */
-    var flexGrow: Float,
+    var flexGrow: Float = 0f,
     /**
      * The relative rate at which this item shrinks when it is contracting to fit into space
      *
      * 1f is the default value, and this value must be positive.
      */
-    var flexShrink: Float,
+    var flexShrink: Float = 1f,
 
     /// Grid container properties
     /**
      * Defines the track sizing functions (heights) of the grid rows
      */
-    var gridTemplateRows: MutableList<TrackSizingFunction>,
+    var gridTemplateRows: MutableList<TrackSizingFunction> = vec(),
     /**
      * Defines the track sizing functions (widths) of the grid columns
      */
-    var gridTemplateColumns: MutableList<TrackSizingFunction>,
+    var gridTemplateColumns: MutableList<TrackSizingFunction> = vec(),
     /**
      * Defines the size of implicitly created rows
      */
-    var gridAutoRows: MutableList<NonRepeatedTrackSizingFunction>,
+    var gridAutoRows: MutableList<NonRepeatedTrackSizingFunction> = vec(),
     /**
      * Defined the size of implicitly created columns
      */
-    var gridAutoColumns: MutableList<NonRepeatedTrackSizingFunction>,
+    var gridAutoColumns: MutableList<NonRepeatedTrackSizingFunction> = vec(),
     /**
      * Controls how items get placed into the grid for auto-placed items
      */
-    var gridAutoFlow: GridAutoFlow,
+    var gridAutoFlow: GridAutoFlow = GridAutoFlow.ROW,
 
     /// Grid child properties
     /**
      * Defines which row in the grid the item should start and end at
      */
-    var gridRow: Line<GridPlacement>,
+    var gridRow: Line<GridPlacement> = Line(start = GenericGridPlacement.AUTO, end = GenericGridPlacement.AUTO),
     /**
      * Defines which column in the grid the item should start and end at
      */
-    var gridColumn: Line<GridPlacement>
-): CoreStyle, GridContainerStyle, GridItemStyle, BlockContainerStyle, BlockItemStyle, FlexboxContainerStyle, FlexboxItemStyle {
+    var gridColumn: Line<GridPlacement> = Line(start = GenericGridPlacement.AUTO, end = GenericGridPlacement.AUTO)
+): CoreStyle, GridContainerStyle, GridItemStyle, BlockContainerStyle, BlockItemStyle, FlexboxContainerStyle, FlexboxItemStyle, Cloneable {
     override fun justifyItems(): Option<AlignItems> {
         return justifyItems
     }
@@ -363,6 +364,45 @@ data class Style(
         return itemIsTable
     }
 
+    public override fun clone(): Style {
+        return Style(
+            display = display,
+            itemIsTable = itemIsTable,
+            boxSizing = boxSizing,
+            overflow = overflow.clone(),
+            scrollbarWidth = scrollbarWidth,
+            position = position,
+            inset = inset.clone(),
+            margin = margin.clone(),
+            padding = padding.clone(),
+            border = border.clone(),
+            size = size.clone(),
+            minSize = minSize.clone(),
+            maxSize = maxSize.clone(),
+            aspectRatio = aspectRatio.clone(),
+            gap = gap.clone(),
+            alignItems = alignItems.clone(),
+            alignSelf = alignSelf.clone(),
+            justifyItems = justifyItems.clone(),
+            justifySelf = justifySelf.clone(),
+            alignContent = alignContent.clone(),
+            justifyContent = justifyContent.clone(),
+            textAlign = textAlign,
+            flexDirection = flexDirection,
+            flexWrap = flexWrap,
+            flexGrow = flexGrow,
+            flexShrink = flexShrink,
+            flexBasis = flexBasis,
+            gridTemplateRows = gridTemplateRows.toMutableList(),
+            gridTemplateColumns = gridTemplateColumns.toMutableList(),
+            gridAutoRows = gridAutoRows.toMutableList(),
+            gridAutoColumns = gridAutoColumns.toMutableList(),
+            gridAutoFlow = gridAutoFlow,
+            gridRow = gridRow.clone(),
+            gridColumn = gridColumn.clone()
+        )
+    }
+
     companion object : Default<Style> {
         val DEFAULT = Style(
             display = Display.default(),
@@ -371,10 +411,10 @@ data class Style(
             overflow = Point(x = Overflow.VISIBLE, y = Overflow.VISIBLE),
             scrollbarWidth = 0f,
             position = Position.RELATIVE,
-            inset = Rect.autoLPA(),
-            margin = Rect.zeroLPA(),
-            padding = Rect.zeroLP(),
-            border = Rect.zeroLP(),
+            inset = Rect.auto(),
+            margin = Rect.zero(),
+            padding = Rect.zero(),
+            border = Rect.zero(),
             size = Size.autoD(),
             minSize = Size.autoD(),
             maxSize = Size.autoD(),
@@ -406,7 +446,7 @@ data class Style(
         )
 
         override fun default(): Style {
-            return DEFAULT
+            return DEFAULT.clone()
         }
     }
 }

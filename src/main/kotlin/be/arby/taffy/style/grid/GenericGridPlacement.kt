@@ -28,7 +28,7 @@ typealias GridPlacement = GenericGridPlacement<GridLine>
  *
  * See [`crate::compute::grid::type::coordinates`] for documentation on the different coordinate systems.
  */
-sealed class GenericGridPlacement<LineType : GridCoordinate> {
+sealed class GenericGridPlacement<LineType : GridCoordinate>: Cloneable {
     /**
      * Place item according to the auto-placement algorithm, and the parent's grid_auto_flow property
      */
@@ -83,6 +83,14 @@ sealed class GenericGridPlacement<LineType : GridCoordinate> {
 
     fun getSpan(): Int {
         return (this as Span).i
+    }
+
+    public override fun clone(): GenericGridPlacement<LineType> {
+        return when (this) {
+            is Auto -> Auto()
+            is Line -> Line(s)
+            is Span -> Span(i)
+        }
     }
 
     companion object : Default<GridPlacement> {

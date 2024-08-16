@@ -34,7 +34,7 @@ fun computeBlockLayout(
     val padding = style.padding().resolveOrZero(parentSize.width)
     val border = style.border().resolveOrZero(parentSize.width)
     val paddingBorderSize = (padding + border).sumAxes()
-    val boxSizingAdjustment = if (style.boxSizing() == BoxSizing.CONTENT_BOX) paddingBorderSize else Size.ZERO
+    val boxSizingAdjustment = if (style.boxSizing() == BoxSizing.CONTENT_BOX) paddingBorderSize else Size.ZERO.clone()
 
     val minSize = style
         .minSize()
@@ -54,7 +54,7 @@ fun computeBlockLayout(
             .maybeAdd(boxSizingAdjustment)
             .maybeClamp(minSize, maxSize)
     } else {
-        Size.NONE
+        Size.NONE.clone()
     }
 
     // If both min and max in a given axis are set and max <= min then this determines the size in that axis
@@ -113,7 +113,7 @@ fun computeInner(tree: LayoutBlockContainer, nodeId: Int, inputs: LayoutInput): 
     val containerContentBoxSize = knownDimensions.maybeSub(contentBoxInset.sumAxes())
 
     val boxSizingAdjustment =
-        if (style.boxSizing() == BoxSizing.CONTENT_BOX) paddingBorderSize else Size.ZERO
+        if (style.boxSizing() == BoxSizing.CONTENT_BOX) paddingBorderSize else Size.ZERO.clone()
     val size = style.size().maybeResolve(parentSize).maybeApplyAspectRatio(aspectRatio).maybeAdd(boxSizingAdjustment)
     val minSize = style
         .minSize()
@@ -211,8 +211,8 @@ fun computeInner(tree: LayoutBlockContainer, nodeId: Int, inputs: LayoutInput): 
             tree.setUnroundedLayout(child, Layout.withOrder(order))
             tree.performChildLayout(
                 child,
-                Size.NONE,
-                Size.NONE,
+                Size.NONE.clone(),
+                Size.NONE.clone(),
                 Size.MAX_CONTENT,
                 SizingMode.INHERENT_SIZE,
                 Line.FALSE
@@ -271,7 +271,7 @@ fun generateItemList(
                 if (childStyle.boxSizing() == BoxSizing.CONTENT_BOX) {
                     pbSum
                 } else {
-                    Size.ZERO
+                    Size.ZERO.clone()
                 }
             BlockItem(
                 nodeId = childNodeId,
@@ -329,7 +329,7 @@ fun determineContentBasedContainerWidth(
             val sizeAndBaselines = tree.performChildLayout(
                 item.nodeId,
                 knownDimensions,
-                Size.NONE,
+                Size.NONE.clone(),
                 availableSpace.mapWidth { w -> w.maybeSub(itemXMarginSum) },
                 SizingMode.INHERENT_SIZE,
                 Line.TRUE
@@ -363,10 +363,10 @@ fun performFinalLayoutOnInFlowChildren(
     val availableSpace =
         Size(width = AvailableSpace.Definite(containerInnerWidth), height = AvailableSpace.MinContent)
 
-    var inflowContentSize = Size.ZERO
+    var inflowContentSize = Size.ZERO.clone()
     var committedYOffset = resolvedContentBoxInset.top
-    var firstChildTopMarginSet = CollapsibleMarginSet.ZERO
-    var activeCollapsibleMarginSet = CollapsibleMarginSet.ZERO
+    var firstChildTopMarginSet = CollapsibleMarginSet.ZERO.clone()
+    var activeCollapsibleMarginSet = CollapsibleMarginSet.ZERO.clone()
     var isCollapsingWithFirstMarginSet = true
     for (item in items) {
         if (item.position == Position.ABSOLUTE) {
@@ -376,7 +376,7 @@ fun performFinalLayoutOnInFlowChildren(
             val itemNonAutoMargin = itemMargin.map { m -> m.unwrapOr(0f) }
             val itemNonAutoXMarginSum = itemNonAutoMargin.horizontalAxisSum()
             val knownDimensions = if (item.isTable) {
-                Size.NONE
+                Size.NONE.clone()
             } else {
                 item.size
                     .mapWidth { width ->
@@ -535,7 +535,7 @@ fun performAbsoluteLayoutOnAbsoluteChildren(
     val areaWidth = areaSize.width
     val areaHeight = areaSize.height
 
-    var absoluteContentSize = Size.ZERO
+    var absoluteContentSize = Size.ZERO.clone()
 
     for (item in items.filter { item -> item.position == Position.ABSOLUTE }) {
         val childStyle = tree.getBlockChildStyle(item.nodeId)
@@ -551,7 +551,7 @@ fun performAbsoluteLayoutOnAbsoluteChildren(
         val border = childStyle.border().resolveOrZero(Option.Some(areaWidth))
         val paddingBorderSum = (padding + border).sumAxes()
         val boxSizingAdjustment =
-            if (childStyle.boxSizing() == BoxSizing.CONTENT_BOX) paddingBorderSum else Size.ZERO
+            if (childStyle.boxSizing() == BoxSizing.CONTENT_BOX) paddingBorderSum else Size.ZERO.clone()
 
         // Resolve inset
         val left = childStyle.inset().left.maybeResolve(areaWidth)
